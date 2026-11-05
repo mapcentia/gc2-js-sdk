@@ -1,0 +1,15 @@
+{
+  "name": "@centia-io/sdk",
+  "version": "0.2.28",
+  "description": "Deprecated: renamed to @mapcentia/gc2-sdk",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": { "types": "./index.d.ts", "default": "./index.js" },
+    "./node": { "types": "./node.d.ts", "default": "./node.js" },
+    "./package.json": "./package.json"
+  },
+  "dependencies": { "@mapcentia/gc2-sdk": "0.3.0" },
+  "license": "MIT"
+}
