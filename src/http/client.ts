@@ -240,7 +240,7 @@ export class CentiaHttpClient {
  * Node.js usage:
  * ```ts
  * const client = createCentiaClient({
- *   baseUrl: 'https://example.centia.io',
+ *   baseUrl: 'https://example.gc2.io',
  *   auth: { getAccessToken: async () => process.env.CENTIA_TOKEN },
  * });
  * ```
@@ -248,7 +248,7 @@ export class CentiaHttpClient {
  * Browser usage:
  * ```ts
  * const client = createCentiaClient({
- *   baseUrl: 'https://example.centia.io',
+ *   baseUrl: 'https://example.gc2.io',
  *   auth: { getAccessToken: async () => getStoredToken() },
  * });
  * ```

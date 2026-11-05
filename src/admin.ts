@@ -59,7 +59,7 @@ export interface CentiaAdminClient {
  *
  * ```ts
  * const client = createCentiaAdminClient({
- *   baseUrl: 'https://example.centia.io',
+ *   baseUrl: 'https://example.gc2.io',
  *   auth: { getAccessToken: async () => token },
  * });
  *
