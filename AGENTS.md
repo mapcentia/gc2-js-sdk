@@ -4,7 +4,7 @@ Guidance for AI coding agents working in this repository.
 
 ## What this is
 
-`@centia-io/sdk` — a TypeScript/JavaScript client SDK for Centia-io (formerly GC2, hence the repo name and `gc2-*` naming in storage keys and configstore files). Runs in both browsers and Node.js 18+ (relies on global `fetch`). Package manager is **pnpm**.
+`@mapcentia/gc2-sdk` — a TypeScript/JavaScript client SDK for Centia-io (formerly GC2, hence the repo name and `gc2-*` naming in storage keys and configstore files). Runs in both browsers and Node.js 18+ (relies on global `fetch`). Package manager is **pnpm**.
 
 ## Commands
 
@@ -25,7 +25,7 @@ Tests live in `src/__tests__/` and `src/provisioning/__tests__/`. There is no vi
 
 ## Browser-bundle constraint (important)
 
-The build targets `platform: "browser"` (see `tsdown.config.ts`). The Node-only dependencies `configstore`, `proper-lockfile`, and `node:*` modules are declared `external` and must only ever be loaded via **dynamic `await import(...)`** inside functions (see `src/auth/configstoreTokenStore.ts`). Never add a static top-level import of these — it breaks the browser bundle. The UMD global is `CentiaSDK`.
+The build targets `platform: "browser"` (see `tsdown.config.ts`). The Node-only dependencies `configstore`, `proper-lockfile`, and `node:*` modules are declared `external` and must only ever be loaded via **dynamic `await import(...)`** inside functions (see `src/auth/configstoreTokenStore.ts`). Never add a static top-level import of these — it breaks the browser bundle. The UMD global is `GC2SDK`.
 
 ## Architecture: two coexisting API layers
 

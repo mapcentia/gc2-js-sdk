@@ -3,7 +3,7 @@ import { defineConfig } from 'tsdown'
 export default defineConfig([
     {
         entry: {
-            'centia-io-sdk': './src/index.ts'
+            'gc2-sdk': './src/index.ts'
         },
         dts: {
             sourcemap: true,
@@ -13,11 +13,11 @@ export default defineConfig([
         external: ['configstore', 'proper-lockfile', 'node:fs', 'node:os', 'node:path'],
         exports: false,
         format: ["esm", "cjs", "umd"],
-        globalName: "CentiaSDK"
+        globalName: "GC2SDK"
     },
     {
         entry: {
-            'centia-io-sdk-node': './src/node.ts'
+            'gc2-sdk-node': './src/node.ts'
         },
         dts: {
             sourcemap: true,

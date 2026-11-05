@@ -13,15 +13,15 @@ TypeScript/JavaScript client SDK for Centia-io. It provides:
 ## Installation
 
 ```bash
-npm install @centia-io/sdk
-yarn add @centia-io/sdk
-pnpm add @centia-io/sdk
+npm install @mapcentia/gc2-sdk
+yarn add @mapcentia/gc2-sdk
+pnpm add @mapcentia/gc2-sdk
 ```  
 
 Or from CDN:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@centia-io/sdk@latest/dist/centia-io-sdk.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mapcentia/gc2-sdk@latest/dist/gc2-sdk.umd.js"></script>
 ```
 
 Requirements:
@@ -30,8 +30,8 @@ Requirements:
 
 ESM import:
 ```ts
-import { CodeFlow, PasswordFlow, Sql, Rpc, createApi, SignUp, createSqlBuilder } from "@centia-io/sdk";
-import type { RpcRequest, RpcResponse, PgTypes } from "@centia-io/sdk";
+import { CodeFlow, PasswordFlow, Sql, Rpc, createApi, SignUp, createSqlBuilder } from "@mapcentia/gc2-sdk";
+import type { RpcRequest, RpcResponse, PgTypes } from "@mapcentia/gc2-sdk";
 ```
 
 ---
@@ -54,7 +54,7 @@ Required options:
 
 Example (vanilla JS/TS + SPA):
 ```ts
-import { CodeFlow } from "@centia-io/sdk";
+import { CodeFlow } from "@mapcentia/gc2-sdk";
 
 const codeFlow = new CodeFlow({
   host: "https://api.centia.io",
@@ -97,7 +97,7 @@ Required options:
 
 Example (Node.js):
 ```ts
-import { PasswordFlow } from "@centia-io/sdk";
+import { PasswordFlow } from "@mapcentia/gc2-sdk";
 
 const flow = new PasswordFlow({
   host: "https://api.centia.io",
@@ -127,7 +127,7 @@ Required options:
 
 Example:
 ```ts
-import { GuestFlow } from "@centia-io/sdk";
+import { GuestFlow } from "@mapcentia/gc2-sdk";
 
 const flow = new GuestFlow({
   host: "https://api.centia.io",
@@ -155,7 +155,7 @@ Required options:
 
 Example (vanilla JS/TS):
 ```ts
-import { SignUp } from "@centia-io/sdk";
+import { SignUp } from "@mapcentia/gc2-sdk";
 
 const signUp = new SignUp({
   host: "https://api.centia.io",
@@ -194,7 +194,7 @@ Types (simplified):
 
 Example:
 ```ts
-import { Sql } from "@centia-io/sdk";
+import { Sql } from "@mapcentia/gc2-sdk";
 
 const sql = new Sql();
 
@@ -218,7 +218,7 @@ console.log(res.data);   // [{ a: 1, b: 'hello', c: '3.14', d: ['x','y'], e: {ne
 
 Typing the rows:
 ```ts
-import type { PgTypes } from "@centia-io/sdk";
+import type { PgTypes } from "@mapcentia/gc2-sdk";
 
 interface Row extends PgTypes.DataRow {
   a: number;
@@ -243,8 +243,8 @@ Build strongly typed SQL requests from a DB schema so you don't write raw SQL.
 
 Example:
 ```ts
-import { createSqlBuilder, Sql } from "@centia-io/sdk";
-import type { DBSchema } from "@centia-io/sdk";
+import { createSqlBuilder, Sql } from "@mapcentia/gc2-sdk";
+import type { DBSchema } from "@mapcentia/gc2-sdk";
 
 // Minimal schema (compatible with schema/schema.json).
 const schema = {
@@ -316,7 +316,7 @@ Types (simplified):
 
 Example:
 ```ts
-import { Rpc } from "@centia-io/sdk";
+import { Rpc } from "@mapcentia/gc2-sdk";
 
 const rpc = new Rpc();
 
@@ -335,7 +335,7 @@ console.log(res.result.data); // array of rows
 
 Typing the rows:
 ```ts
-import type { PgTypes } from "@centia-io/sdk";
+import type { PgTypes } from "@mapcentia/gc2-sdk";
 
 interface Row extends PgTypes.DataRow {
   a: number;
@@ -353,8 +353,8 @@ Under the hood, each property access becomes a JSON‑RPC call with the property
 
 Example with typing:
 ```ts
-import { createApi } from "@centia-io/sdk";
-import type { PgTypes } from "@centia-io/sdk";
+import { createApi } from "@mapcentia/gc2-sdk";
+import type { PgTypes } from "@mapcentia/gc2-sdk";
 
 // Define the shape of your RPC methods and return types
 interface MyApi {
@@ -395,7 +395,7 @@ Notes:
 Layer configuration (properties, classes, styles and labels — MapServer-backed cartography) is managed through the admin client:
 
 ```ts
-import { createCentiaAdminClient } from '@centia-io/sdk'
+import { createCentiaAdminClient } from '@mapcentia/gc2-sdk'
 
 const client = createCentiaAdminClient({
   baseUrl: 'https://example.centia.io',
@@ -471,7 +471,7 @@ The response also carries `_defaults`: what each patchable setting would be if i
 `Ows` and `Wfs` wrap the OGC endpoints and take a `CentiaHttpClient`:
 
 ```ts
-import { createCentiaClient, Ows, Wfs } from '@centia-io/sdk'
+import { createCentiaClient, Ows, Wfs } from '@mapcentia/gc2-sdk'
 
 const http = createCentiaClient({
   baseUrl: 'https://example.centia.io',
@@ -503,7 +503,7 @@ One endpoint serves all identities: Bearer token (must match the `database` in t
 `Mapcache` wraps the authorizing MapCache proxy. Use `getMapcache` for text responses such as capabilities documents, and `mapcacheUrl` to build tile URL templates for map libraries:
 
 ```ts
-import { createCentiaClient, Mapcache } from '@centia-io/sdk'
+import { createCentiaClient, Mapcache } from '@mapcentia/gc2-sdk'
 
 const mapcache = new Mapcache(http)
 
@@ -538,7 +538,7 @@ The endpoint accepts anonymous, HTTP Basic and Bearer token requests; tile reque
 `Ogc` wraps the RESTful OGC API under `/api/v4/ogc/database/{database}` — OGC API Features (Part 1 Core, Part 2 CRS) for reading features as GeoJSON and OGC API Maps (Part 1 Core) for rendered images. Like `Ows`/`Wfs` it takes a `CentiaHttpClient`; Bearer token, HTTP Basic and anonymous requests are all accepted:
 
 ```ts
-import { createCentiaClient, Ogc, OGC_CRS84, ogcEpsgCrs } from '@centia-io/sdk'
+import { createCentiaClient, Ogc, OGC_CRS84, ogcEpsgCrs } from '@mapcentia/gc2-sdk'
 
 const ogc = new Ogc(http)
 
@@ -568,7 +568,7 @@ CRS values are URIs: `OGC_CRS84` (lon/lat, default) or `ogcEpsgCrs(code)`; note 
 `Keyvalue` wraps the `/api/v4/keyvalue` endpoints for storing arbitrary JSON under globally unique keys. It takes a `CentiaHttpClient` and requires a Bearer token:
 
 ```ts
-import { createCentiaClient, Keyvalue } from '@centia-io/sdk'
+import { createCentiaClient, Keyvalue } from '@mapcentia/gc2-sdk'
 
 const kv = new Keyvalue(http)
 
@@ -600,7 +600,7 @@ Access model: super users have full CRUD on all keys; sub-users can read their o
 `Features` wraps the `/api/v4/schemas/{schema}/tables/{table}/features` endpoints for reading and writing table rows as GeoJSON through WFS-T transactions. It takes a `CentiaHttpClient` and requires a Bearer token:
 
 ```ts
-import { createCentiaClient, Features } from '@centia-io/sdk'
+import { createCentiaClient, Features } from '@mapcentia/gc2-sdk'
 
 const features = new Features(http)
 
@@ -639,7 +639,7 @@ await features.deleteFeature('my_schema', 'my_table', [1, 2, 3])
 `Snapshots` wraps the snapshot API: asynchronous GeoParquet exports of a table or view to S3, and read access to the published snapshot files. It takes a `CentiaHttpClient` and requires a Bearer token:
 
 ```ts
-import { createCentiaClient, Snapshots } from '@centia-io/sdk'
+import { createCentiaClient, Snapshots } from '@mapcentia/gc2-sdk'
 
 const snapshots = new Snapshots(http)
 
@@ -694,7 +694,7 @@ The job API is super-user only (403 `SUPER_USER_ONLY`); creating throws 404 (rel
 `Scheduler` wraps the scheduler API: cron-scheduled data-import jobs and their runs. Super-user only. It takes a `CentiaHttpClient` and requires a Bearer token:
 
 ```ts
-import { createCentiaClient, Scheduler } from '@centia-io/sdk'
+import { createCentiaClient, Scheduler } from '@mapcentia/gc2-sdk'
 
 const scheduler = new Scheduler(http)
 
@@ -737,7 +737,7 @@ Errors throw `CentiaApiError` with status/code: 400 `INVALID_CRON_FIELD`/`INPUT_
 `Tileseeder` wraps `/api/v4/tileseeder/jobs`: queued jobs that pre-render a mapcache tileset. Sub-users may use it; queueing requires write/owner on the tileset's relation. A sub-user sees its own jobs, a super-user every job of the database.
 
 ```ts
-import { createCentiaClient, Tileseeder } from '@centia-io/sdk'
+import { createCentiaClient, Tileseeder } from '@mapcentia/gc2-sdk'
 
 const tileseeder = new Tileseeder(http)
 
@@ -794,8 +794,8 @@ Below are practical, copy/paste‑ready snippets that demonstrate the SqlBuilder
 
 Setup (minimal schema with a foreign key for joins):
 ```ts
-import { createSqlBuilder } from "@centia-io/sdk";
-import type { DBSchema } from "@centia-io/sdk";
+import { createSqlBuilder } from "@mapcentia/gc2-sdk";
+import type { DBSchema } from "@mapcentia/gc2-sdk";
 
 const schema = {
   name: "public",

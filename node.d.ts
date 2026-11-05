@@ -1,1 +1,1 @@
-export * from './dist/centia-io-sdk-node'
+export * from './dist/gc2-sdk-node'

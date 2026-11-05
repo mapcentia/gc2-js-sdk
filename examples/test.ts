@@ -1,4 +1,4 @@
-import {createApi, Rpc, Sql, PasswordFlow, PasswordFlowOptions, PgTypes} from "./../dist/centia-io-sdk.js";
+import {createApi, Rpc, Sql, PasswordFlow, PasswordFlowOptions, PgTypes} from "./../dist/gc2-sdk.js";
 import {Api} from "./MyApi.ts";
 
 

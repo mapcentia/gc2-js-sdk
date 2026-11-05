@@ -1,26 +1,26 @@
 {
-  "name": "@centia-io/sdk",
-  "version": "0.2.27",
-  "description": "Centia-io TypeScript SDK",
+  "name": "@mapcentia/gc2-sdk",
+  "version": "0.3.0",
+  "description": "GC2 (Geo Compute Cloud) TypeScript SDK",
   "author": "Martin Høgh",
   "license": "MIT",
   "type": "module",
-  "main": "./dist/centia-io-sdk.cjs",
-  "module": "./dist/centia-io-sdk.js",
-  "types": "./dist/centia-io-sdk.d.cts",
+  "main": "./dist/gc2-sdk.cjs",
+  "module": "./dist/gc2-sdk.js",
+  "types": "./dist/gc2-sdk.d.cts",
   "exports": {
     ".": {
-      "require": "./dist/centia-io-sdk.cjs",
-      "import": "./dist/centia-io-sdk.js"
+      "require": "./dist/gc2-sdk.cjs",
+      "import": "./dist/gc2-sdk.js"
     },
     "./node": {
       "import": {
-        "types": "./dist/centia-io-sdk-node.d.ts",
-        "default": "./dist/centia-io-sdk-node.js"
+        "types": "./dist/gc2-sdk-node.d.ts",
+        "default": "./dist/gc2-sdk-node.js"
       },
       "require": {
-        "types": "./dist/centia-io-sdk-node.d.cts",
-        "default": "./dist/centia-io-sdk-node.cjs"
+        "types": "./dist/gc2-sdk-node.d.cts",
+        "default": "./dist/gc2-sdk-node.cjs"
       }
     },
     "./package.json": "./package.json"
@@ -50,5 +50,7 @@
   "private": false,
   "engines": {
     "node": ">=18"
-  }
+  },
+  "repository": "github:mapcentia/gc2-js-client",
+  "homepage": "https://gc2.io/docs/sdk"
 }
