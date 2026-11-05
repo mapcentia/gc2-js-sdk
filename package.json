@@ -1,6 +1,6 @@
 {
   "name": "@mapcentia/gc2-sdk",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "GC2 (Geo Compute Cloud) TypeScript SDK",
   "author": "Martin Høgh",
   "license": "MIT",
