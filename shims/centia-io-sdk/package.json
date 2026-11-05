@@ -3,11 +3,18 @@
   "version": "0.2.28",
   "description": "Deprecated: renamed to @mapcentia/gc2-sdk",
   "type": "module",
-  "main": "./index.js",
-  "types": "./index.d.ts",
+  "main": "./index.cjs",
+  "module": "./index.js",
+  "types": "./index.d.cts",
   "exports": {
-    ".": { "types": "./index.d.ts", "default": "./index.js" },
-    "./node": { "types": "./node.d.ts", "default": "./node.js" },
+    ".": {
+      "import": { "types": "./index.d.ts", "default": "./index.js" },
+      "require": { "types": "./index.d.cts", "default": "./index.cjs" }
+    },
+    "./node": {
+      "import": { "types": "./node.d.ts", "default": "./node.js" },
+      "require": { "types": "./node.d.cts", "default": "./node.cjs" }
+    },
     "./package.json": "./package.json"
   },
   "dependencies": { "@mapcentia/gc2-sdk": "0.3.0" },
