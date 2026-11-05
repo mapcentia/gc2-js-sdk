@@ -17,7 +17,7 @@ export interface CentiaAuth {
 
 /** Configuration for createCentiaClient(). */
 export interface CentiaClientConfig {
-  /** Base URL of the Centia API (e.g. "https://example.centia.io"). */
+  /** Base URL of the GC2 API (e.g. "https://example.gc2.io"). */
   baseUrl: string;
   /** Auth injection. If omitted, requests are unauthenticated. */
   auth?: CentiaAuth;

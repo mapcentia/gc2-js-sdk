@@ -4,7 +4,7 @@ Guidance for AI coding agents working in this repository.
 
 ## What this is
 
-`@mapcentia/gc2-sdk` — a TypeScript/JavaScript client SDK for Centia-io (formerly GC2, hence the repo name and `gc2-*` naming in storage keys and configstore files). Runs in both browsers and Node.js 18+ (relies on global `fetch`). Package manager is **pnpm**.
+`@mapcentia/gc2-sdk` — a TypeScript/JavaScript client SDK for GC2 (Geo Compute Cloud). Runs in both browsers and Node.js 18+ (relies on global `fetch`). Package manager is **pnpm**.
 
 ## Commands
 

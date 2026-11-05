@@ -13,7 +13,7 @@ function expectedStatuses(expected: number | number[] | undefined): number[] {
 }
 
 /**
- * Unified HTTP client for the Centia API.
+ * Unified HTTP client for the GC2 API.
  * Works in both Node.js and browser environments.
  */
 export class CentiaHttpClient {
@@ -31,7 +31,7 @@ export class CentiaHttpClient {
   }
 
   /**
-   * Execute an HTTP request against the Centia API.
+   * Execute an HTTP request against the GC2 API.
    * Returns parsed JSON on success. Throws CentiaApiError on non-expected status.
    */
   async request<T = unknown>(opts: RequestOptions): Promise<T> {
@@ -235,7 +235,7 @@ export class CentiaHttpClient {
 }
 
 /**
- * Create a new Centia HTTP client.
+ * Create a new GC2 HTTP client.
  *
  * Node.js usage:
  * ```ts

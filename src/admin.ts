@@ -55,7 +55,7 @@ export interface CentiaAdminClient {
 }
 
 /**
- * Create a Centia admin client with access to provisioning operations.
+ * Create a GC2 admin client with access to provisioning operations.
  *
  * ```ts
  * const client = createCentiaAdminClient({

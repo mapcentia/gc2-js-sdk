@@ -1,6 +1,6 @@
 # SDK
 
-TypeScript/JavaScript client SDK for Centia-io. It provides:
+TypeScript/JavaScript client SDK for GC2 (Geo Compute Cloud). It provides:
 
 - Authentication helpers:
     - CodeFlow (OAuth 2.0 Authorization Code + PKCE) for browser apps
@@ -26,7 +26,7 @@ Or from CDN:
 
 Requirements:
 - Browser or Node.js 18+ (for global `fetch`).
-- An accessible Centia.io host URL and client credentials.
+- An accessible GC2 host URL and client credentials.
 
 ESM import:
 ```ts
@@ -44,12 +44,12 @@ The SDK handles token storage and refresh for you.
 
 ### CodeFlow (Browser, OAuth 2.0 Authorization Code + PKCE)
 
-Use this flow in browser applications where you can redirect the user to the Centia-io login page.
+Use this flow in browser applications where you can redirect the user to the GC2 login page.
 
 Required options:
-- `host`: Base URL of your Centia-io instance, e.g. `https://api.centia.io`
-- `clientId`: OAuth client id configured in Centia.io
-- `redirectUri`: The URL in your app that handles the redirect back from Centia.io (must be whitelisted)
+- `host`: Base URL of your GC2 instance, e.g. `https://api.gc2.io`
+- `clientId`: OAuth client id configured in GC2
+- `redirectUri`: The URL in your app that handles the redirect back from GC2 (must be whitelisted)
 - `scope` (optional): Not in use yet, but will be used to request additional permissions from the user.
 
 Example (vanilla JS/TS + SPA):
@@ -57,7 +57,7 @@ Example (vanilla JS/TS + SPA):
 import { CodeFlow } from "@mapcentia/gc2-sdk";
 
 const codeFlow = new CodeFlow({
-  host: "https://api.centia.io",
+  host: "https://api.gc2.io",
   clientId: "your-client-id",
   redirectUri: window.location.origin + "/auth/callback"
 });
@@ -100,7 +100,7 @@ Example (Node.js):
 import { PasswordFlow } from "@mapcentia/gc2-sdk";
 
 const flow = new PasswordFlow({
-  host: "https://api.centia.io",
+  host: "https://api.gc2.io",
   clientId: "your-client-id",
   username: "your-username",
   password: "your-password",
@@ -130,7 +130,7 @@ Example:
 import { GuestFlow } from "@mapcentia/gc2-sdk";
 
 const flow = new GuestFlow({
-  host: "https://api.centia.io",
+  host: "https://api.gc2.io",
   clientId: "your-client-id",
   database: "your-database"
 });
@@ -144,12 +144,12 @@ flow.signOut(); // Clears tokens/options in local storage (no redirect)
 
 ### SignUp (Browser – Create a new user)
 
-Use this helper in browser applications to redirect the user to the Centia‑io sign‑up page. 
+Use this helper in browser applications to redirect the user to the GC2 sign‑up page. 
 The user will create an account under a specified parent database/tenant and then be redirected back to your application.
 
 Required options:
-- host: Base URL of your Centia‑io instance, e.g. https://api.centia.io
-- clientId: OAuth client id configured in Centia.io
+- host: Base URL of your GC2 instance, e.g. https://api.gc2.io
+- clientId: OAuth client id configured in GC2
 - parentDb: The parent/tenant database under which the new user should be created
 - redirectUri: URL in your app to return to after sign‑up
 
@@ -158,7 +158,7 @@ Example (vanilla JS/TS):
 import { SignUp } from "@mapcentia/gc2-sdk";
 
 const signUp = new SignUp({
-  host: "https://api.centia.io",
+  host: "https://api.gc2.io",
   clientId: "your-client-id",
   parentDb: "your-parent-database",
   redirectUri: window.location.origin + "/auth/callback"
@@ -180,7 +180,7 @@ Execute parameterized SQL against GC2.
 
 - Class: `new Sql()`
 - Method: `exec(request: SqlRequest): Promise<SqlResponse>`
-- Endpoint: `POST https://api.centia.io/api/v4/sql`
+- Endpoint: `POST https://api.gc2.io/api/v4/sql`
 
 Types (simplified):
 - `SqlRequest` has:
@@ -398,7 +398,7 @@ Layer configuration (properties, classes, styles and labels — MapServer-backed
 import { createCentiaAdminClient } from '@mapcentia/gc2-sdk'
 
 const client = createCentiaAdminClient({
-  baseUrl: 'https://example.centia.io',
+  baseUrl: 'https://example.gc2.io',
   auth: { getAccessToken: async () => token },
 })
 
@@ -474,7 +474,7 @@ The response also carries `_defaults`: what each patchable setting would be if i
 import { createCentiaClient, Ows, Wfs } from '@mapcentia/gc2-sdk'
 
 const http = createCentiaClient({
-  baseUrl: 'https://example.centia.io',
+  baseUrl: 'https://example.gc2.io',
   auth: { getAccessToken: async () => token },
 })
 
