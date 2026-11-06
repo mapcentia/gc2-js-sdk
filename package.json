@@ -51,6 +51,6 @@
   "engines": {
     "node": ">=18"
   },
-  "repository": "github:mapcentia/gc2-js-client",
+  "repository": "github:mapcentia/gc2-js-sdk",
   "homepage": "https://gc2.io/docs/sdk"
 }
