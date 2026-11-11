@@ -30,6 +30,7 @@ import { Wfs } from "./ogc/Wfs"
 import { Mapcache } from "./ogc/Mapcache"
 import { Ogc } from "./ogc/Ogc"
 import { Keyvalue } from "./keyvalue/Keyvalue"
+import { Configurations } from "./configurations/Configurations"
 import { Features } from "./features/Features"
 import { Snapshots } from "./snapshots/Snapshots"
 import { Scheduler } from "./scheduler/Scheduler"
@@ -64,6 +65,7 @@ export {
     Mapcache,
     Ogc,
     Keyvalue,
+    Configurations,
     Features,
     Snapshots,
     Scheduler,
@@ -186,6 +188,7 @@ export type { MapcacheParams, DeleteMapcacheTilesetOptions, MapcacheTilesetDelet
 export { OGC_CRS84, ogcEpsgCrs } from "./ogc/Ogc";
 export type { OgcLink, OgcLandingPage, OgcConformance, OgcExtent, OgcCollection, OgcCollections, OgcFeature, OgcFeatureCollection, OgcCollectionsOptions, OgcBbox, OgcSpatialOptions, OgcItemsOptions, OgcItemOptions, OgcMapOptions } from "./ogc/Ogc";
 export type { KeyvalueEntry, CreateKeyvalueRequest, PatchKeyvalueRequest, KeyvalueProjection } from "./keyvalue/Keyvalue";
+export type { Configuration, CreateConfigurationRequest, PatchConfigurationRequest, CreateConfigurationResponse } from "./configurations/Configurations";
 export type { GeoJsonGeometry, GeoJsonFeature, GeoJsonFeatureCollection, FeatureKey, FeatureSrsOptions, PatchFeatureOptions } from "./features/Features";
 export type { SnapshotStatus, SnapshotFormat, SnapshotDate, SnapshotFormatResult, SnapshotRequest, SnapshotAccepted, SnapshotColumn, SnapshotJob, RelationSnapshotFile, RelationSnapshot, RelationSnapshotDetails, GetSnapshotsOptions, WaitForSnapshotOptions, SnapshotDataOptions } from "./snapshots/Snapshots";
 export type { SchedulerRunStatus, SchedulerJobInput, PatchSchedulerJobRequest, SchedulerJob, SchedulerJobsCreated, SchedulerRun, PostSchedulerRunRequest, SchedulerRunAccepted, SchedulerRunStopped, GetSchedulerRunsOptions } from "./scheduler/Scheduler";

@@ -160,7 +160,7 @@ export class CentiaHttpClient {
     };
 
     // Auth: getAccessToken sets Bearer token
-    if (this.auth.getAccessToken) {
+    if (!opts.anonymous && this.auth.getAccessToken) {
       const token = await this.auth.getAccessToken();
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
@@ -168,7 +168,7 @@ export class CentiaHttpClient {
     }
 
     // Auth: getHeaders merges (can override Authorization)
-    if (this.auth.getHeaders) {
+    if (!opts.anonymous && this.auth.getHeaders) {
       const authHeaders = await this.auth.getHeaders();
       Object.assign(headers, authHeaders);
     }

@@ -43,6 +43,8 @@ export interface RequestOptions {
   accept?: string;
   /** Expected HTTP status code(s). Defaults to 200. Non-match throws CentiaApiError. */
   expectedStatus?: number | number[];
+  /** When true, no auth is applied (no token, no auth headers). For token-less public endpoints. */
+  anonymous?: boolean;
 }
 
 /** Options for a raw request via CentiaHttpClient.requestRaw(). */
