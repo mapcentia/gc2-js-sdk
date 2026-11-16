@@ -82,7 +82,7 @@ function onLogoutClick() {
 
 Notes:
 - `redirectHandle()` detects errors from the auth server, validates `state` (CSRF protection), exchanges the `code` for tokens, performs `PKCE` (Proof Key for Code Exchange), stores tokens and cleans up the URL.
-- `signOut()` clears local tokens/options and redirects to the sign-out URL. If you only need to clear local state without redirect, call `codeFlow.clear()`.
+- `signOut()` clears local tokens/options and redirects to the sign-out URL. If you only need to clear local state without redirect, call `codeFlow.clear()`. The sign-out endpoint only returns the user to `redirectUri` when that address is registered as a redirect URI on the OAuth client (or is on a host the server allows); otherwise the user ends up on the server's front page after signing out.
 
 ### PasswordFlow (Trusted environments, CLI/Server)
 
@@ -151,7 +151,7 @@ Required options:
 - host: Base URL of your GC2 instance, e.g. https://api.gc2.io
 - clientId: OAuth client id configured in GC2
 - parentDb: The parent/tenant database under which the new user should be created
-- redirectUri: URL in your app to return to after sign‑up
+- redirectUri: URL in your app to return to after sign‑up. Must be registered as a redirect URI on the OAuth client (or be on a host the server allows); otherwise the sign-up page answers "redirect_uri is not allowed"
 
 Example (vanilla JS/TS):
 ```ts
