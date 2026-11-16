@@ -7,6 +7,14 @@
 
 import {CodeFlowOptions, GetDeviceCodeResponse, getNonce, GetTokenResponse, GuestFlowOptions, PasswordFlowOptions, SignUpOptions} from '../util/utils';
 
+/** Error for a non-2xx answer from an OAuth endpoint; carries the status and the unparsed body. */
+class OAuthHttpError extends Error {
+    constructor(readonly status: number, readonly body: string) {
+        super(`HTTP error ${status}: ${body}`);
+        this.name = 'OAuthHttpError';
+    }
+}
+
 export class Gc2Service {
     private readonly options: CodeFlowOptions | PasswordFlowOptions | GuestFlowOptions;
     private readonly host: string;
@@ -60,7 +68,7 @@ export class Gc2Service {
 
         if (!response.ok) {
             const errText = await response.text();
-            throw new Error(`HTTP error ${response.status}: ${errText}`);
+            throw new OAuthHttpError(response.status, errText);
         }
 
         return response.json();
@@ -75,7 +83,8 @@ export class Gc2Service {
 
     async pollToken(deviceCode: string, interval: number): Promise<GetTokenResponse> {
         const path = this.options.tokenUri ?? `${this.host}/api/v4/oauth`;
-        const getToken = async (): Promise<GetTokenResponse | null | string> => {
+        // Returns the token, or null while the user has not approved yet.
+        const getToken = async (): Promise<GetTokenResponse | null> => {
             try {
                 return await this.request(
                     this.buildUrl(path),
@@ -86,12 +95,28 @@ export class Gc2Service {
                         grant_type: 'device_code',
                     }
                 );
-            } catch (e: any) {
-                const err = JSON.parse(e.message.split(': ')[1]);
+            } catch (e: unknown) {
+                // Network failures and the like are not ours to interpret
+                if (!(e instanceof OAuthHttpError)) {
+                    throw e;
+                }
+                let err: { error?: unknown; error_description?: unknown } | null = null;
+                try {
+                    const parsed = JSON.parse(e.body);
+                    if (parsed !== null && typeof parsed === 'object') {
+                        err = parsed;
+                    }
+                } catch {
+                    // Not JSON, e.g. an HTML page from a proxy
+                }
+                if (err === null) {
+                    throw new Error(`Device authorization failed with HTTP ${e.status}`);
+                }
                 if (err.error === 'authorization_pending') {
                     return null;
                 }
-                return err.error_description;
+                const reason = [err.error_description, err.error].find(v => typeof v === 'string' && v !== '');
+                throw new Error((reason as string | undefined) ?? `Device authorization failed with HTTP ${e.status}`);
             }
         };
 
@@ -99,10 +124,6 @@ export class Gc2Service {
         while (response === null) {
             await new Promise(resolve => setTimeout(resolve, interval * 1100));
             response = await getToken();
-        }
-
-        if (typeof response === 'string') {
-            throw new Error(response);
         }
 
         return response;
