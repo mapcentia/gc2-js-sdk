@@ -190,7 +190,7 @@ export type { OgcLink, OgcLandingPage, OgcConformance, OgcExtent, OgcCollection,
 export type { KeyvalueEntry, CreateKeyvalueRequest, PatchKeyvalueRequest, KeyvalueProjection } from "./keyvalue/Keyvalue";
 export type { Configuration, CreateConfigurationRequest, PatchConfigurationRequest, CreateConfigurationResponse } from "./configurations/Configurations";
 export type { GeoJsonGeometry, GeoJsonFeature, GeoJsonFeatureCollection, FeatureKey, FeatureSrsOptions, PatchFeatureOptions } from "./features/Features";
-export type { SnapshotStatus, SnapshotFormat, SnapshotDate, SnapshotFormatResult, SnapshotRequest, SnapshotAccepted, SnapshotColumn, SnapshotJob, RelationSnapshotFile, RelationSnapshot, RelationSnapshotDetails, GetSnapshotsOptions, WaitForSnapshotOptions, SnapshotDataOptions } from "./snapshots/Snapshots";
+export type { SnapshotStatus, SnapshotFormat, SnapshotDate, SnapshotFormatResult, SnapshotRequest, SnapshotAccepted, SnapshotColumn, SnapshotJob, RelationSnapshotFile, RelationSnapshot, RelationSnapshotDetails, GetSnapshotsOptions, WaitForSnapshotOptions, SnapshotDataOptions, SnapshotCatalogRebuildStatus, SnapshotCatalogRebuildAccepted, SnapshotCatalogRebuild } from "./snapshots/Snapshots";
 export type { SchedulerRunStatus, SchedulerJobInput, PatchSchedulerJobRequest, SchedulerJob, SchedulerJobsCreated, SchedulerRun, PostSchedulerRunRequest, SchedulerRunAccepted, SchedulerRunStopped, GetSchedulerRunsOptions } from "./scheduler/Scheduler";
 export type { SeedJobStatus, SeedJobInput, SeedJob, GetSeedJobsOptions, SeedJobStopping } from "./tileseeder/Tileseeder";
 export type { SqlNoTokenRequest } from "./SqlNoToken";

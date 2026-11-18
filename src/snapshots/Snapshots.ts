@@ -90,6 +90,31 @@ export interface SnapshotJob {
   formats: SnapshotFormatResult[];
 }
 
+/** Status of a rewrite of the snapshot STAC catalog. */
+export type SnapshotCatalogRebuildStatus = 'pending' | 'running' | 'succeeded' | 'failed';
+
+/** 202 response from postSnapshotCatalogRebuild; poll `_links.self` (or getSnapshotCatalogRebuild) for status. */
+export interface SnapshotCatalogRebuildAccepted {
+  id: string;
+  status: 'pending';
+  _links: { self: string };
+}
+
+/** Status of a rewrite of the snapshot STAC catalog. */
+export interface SnapshotCatalogRebuild {
+  id: string;
+  status: SnapshotCatalogRebuildStatus;
+  /** Number of catalog documents the rewrite covered; null until it has run. */
+  documents: number | null;
+  /** Number of those that could not be written; a `failed` rebuild still wrote the rest. */
+  failed_documents: number | null;
+  error: string | null;
+  username: string;
+  created: string;
+  started: string | null;
+  finished: string | null;
+}
+
 /** One file of a published snapshot. */
 export interface RelationSnapshotFile {
   name: string;
@@ -125,7 +150,7 @@ export interface GetSnapshotsOptions {
   relation?: string;
 }
 
-/** Polling options for waitForSnapshot. */
+/** Polling options for waitForSnapshot and waitForSnapshotCatalogRebuild. */
 export interface WaitForSnapshotOptions {
   /** Milliseconds between polls. Default 2000. */
   intervalMs?: number;
@@ -223,6 +248,69 @@ export class Snapshots {
       }
       if (Date.now() + intervalMs > deadline) {
         throw new Error(`Timed out after ${timeoutMs} ms waiting for snapshot ${id} (status: ${job.status})`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+  }
+
+  /**
+   * Queue a rewrite of the database's whole STAC catalog of snapshots
+   * (`catalog.json` and every `collection.json`, `latest.json` and
+   * `item.json`). Publishing a snapshot already updates the documents of its
+   * own relation, so this is a repair tool: for a catalog that has drifted,
+   * or after a server upgrade that changes the document layout. It takes
+   * longer the more snapshots are published, and queued snapshots on the
+   * server wait while it runs. Returns 202 with the rebuild id. Throws
+   * `CentiaApiError`: 403 (super-user only), 409 `CATALOG_REBUILD_IN_PROGRESS`
+   * (one is already pending or running), 501 (storage not configured).
+   */
+  async postSnapshotCatalogRebuild(): Promise<SnapshotCatalogRebuildAccepted> {
+    return this.client.request({
+      path: 'api/v4/snapshots/catalog/rebuilds',
+      method: 'POST',
+      expectedStatus: 202,
+    });
+  }
+
+  /**
+   * Get one catalog rebuild by id, or several (an array returns an array).
+   * Throws a 404 `CentiaApiError` when any id is unknown. Super-user only.
+   */
+  async getSnapshotCatalogRebuild(id: string): Promise<SnapshotCatalogRebuild>;
+  async getSnapshotCatalogRebuild(ids: string[]): Promise<SnapshotCatalogRebuild[]>;
+  async getSnapshotCatalogRebuild(id: string | string[]): Promise<SnapshotCatalogRebuild | SnapshotCatalogRebuild[]> {
+    const keys = Array.isArray(id) ? id : [id];
+    return this.client.request({
+      path: `api/v4/snapshots/catalog/rebuilds/${keys.map((k) => encodeURIComponent(k)).join(',')}`,
+      method: 'GET',
+    });
+  }
+
+  /** List the newest catalog rebuilds (50). Super-user only. */
+  async getSnapshotCatalogRebuilds(): Promise<SnapshotCatalogRebuild[]> {
+    return this.client.request({
+      path: 'api/v4/snapshots/catalog/rebuilds',
+      method: 'GET',
+    });
+  }
+
+  /**
+   * Poll a catalog rebuild until it has succeeded or failed and return it —
+   * check `status`/`failed_documents`/`error` on the result. Throws an
+   * `Error` when `timeoutMs` elapses first; a large catalog can take longer
+   * than the default five minutes.
+   */
+  async waitForSnapshotCatalogRebuild(id: string, options?: WaitForSnapshotOptions): Promise<SnapshotCatalogRebuild> {
+    const intervalMs = options?.intervalMs ?? 2000;
+    const timeoutMs = options?.timeoutMs ?? 300000;
+    const deadline = Date.now() + timeoutMs;
+    for (;;) {
+      const rebuild = await this.getSnapshotCatalogRebuild(id);
+      if (rebuild.status === 'succeeded' || rebuild.status === 'failed') {
+        return rebuild;
+      }
+      if (Date.now() + intervalMs > deadline) {
+        throw new Error(`Timed out after ${timeoutMs} ms waiting for catalog rebuild ${id} (status: ${rebuild.status})`);
       }
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
     }

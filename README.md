@@ -703,6 +703,14 @@ if (job.status === 'failed') throw new Error(job.error ?? 'export failed')
 // List jobs, optionally filtered (super-user only)
 const jobs = await snapshots.getSnapshots({ schema: 'geodanmark', relation: 'bygning' })
 
+// Rewrite the whole STAC catalog of the database's snapshots (super-user
+// only). A publish already updates its own relation's documents, so this is
+// a repair tool — slow on a large catalog, and queued snapshots wait for it.
+const rebuild = await snapshots.postSnapshotCatalogRebuild() // 202; 409 while one is active
+const done = await snapshots.waitForSnapshotCatalogRebuild(rebuild.id, { timeoutMs: 1_800_000 })
+if (done.status === 'failed') throw new Error(done.error ?? 'catalog rebuild failed') // failed_documents of documents
+const rebuilds = await snapshots.getSnapshotCatalogRebuilds() // newest 50
+
 // Read API — any user with read access to the relation:
 const published = await snapshots.getRelationSnapshots('geodanmark', 'bygning') // newest first
 const meta = await snapshots.getRelationSnapshot('geodanmark', 'bygning', '2026-09-16')

@@ -125,6 +125,82 @@ describe('Snapshots job API', () => {
   });
 });
 
+describe('Snapshots catalog rebuild API', () => {
+  const rebuild = {
+    id: 'r1', status: 'succeeded', documents: 7, failed_documents: 0, error: null,
+    username: 'mh', created: 'c', started: 's', finished: 'f',
+  };
+
+  it('postSnapshotCatalogRebuild sends a body-less POST and expects 202', async () => {
+    const accepted = { id: 'r1', status: 'pending', _links: { self: '/api/v4/snapshots/catalog/rebuilds/r1' } };
+    const fetchFn = mockFetch(202, accepted);
+    const snapshots = new Snapshots(createHttp(fetchFn));
+
+    const result = await snapshots.postSnapshotCatalogRebuild();
+
+    const [url, init] = lastCall(fetchFn);
+    expect(url).toBe('https://api.example.com/api/v4/snapshots/catalog/rebuilds');
+    expect(init.method).toBe('POST');
+    expect(init.body).toBeUndefined();
+    expect(result).toEqual(accepted);
+  });
+
+  it('postSnapshotCatalogRebuild surfaces 409 when one is already active', async () => {
+    const fetchFn = mockFetch(409, { success: false, message: 'busy', code: 409, errorCode: 'CATALOG_REBUILD_IN_PROGRESS' });
+    const snapshots = new Snapshots(createHttp(fetchFn));
+
+    const err = await snapshots.postSnapshotCatalogRebuild().catch((e) => e);
+
+    expect(isCentiaApiError(err)).toBe(true);
+    expect(err.status).toBe(409);
+  });
+
+  it('getSnapshotCatalogRebuild fetches one by id and several by a comma list', async () => {
+    const fetchFn = mockFetch(200, rebuild);
+    const snapshots = new Snapshots(createHttp(fetchFn));
+
+    expect(await snapshots.getSnapshotCatalogRebuild('r1')).toEqual(rebuild);
+    expect(lastCall(fetchFn)[0]).toBe('https://api.example.com/api/v4/snapshots/catalog/rebuilds/r1');
+
+    await snapshots.getSnapshotCatalogRebuild(['r1', 'r2']);
+    expect(lastCall(fetchFn)[0]).toBe('https://api.example.com/api/v4/snapshots/catalog/rebuilds/r1,r2');
+  });
+
+  it('getSnapshotCatalogRebuilds lists the newest rebuilds', async () => {
+    const fetchFn = mockFetch(200, [rebuild]);
+    const snapshots = new Snapshots(createHttp(fetchFn));
+
+    const result = await snapshots.getSnapshotCatalogRebuilds();
+
+    const [url, init] = lastCall(fetchFn);
+    expect(url).toBe('https://api.example.com/api/v4/snapshots/catalog/rebuilds');
+    expect(init.method).toBe('GET');
+    expect(result).toEqual([rebuild]);
+  });
+
+  it('waitForSnapshotCatalogRebuild polls until a terminal status', async () => {
+    const res = (body: unknown) => ({ status: 200, text: async () => JSON.stringify(body), headers: { get: () => null } });
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce(res({ ...rebuild, status: 'pending' }))
+      .mockResolvedValueOnce(res({ ...rebuild, status: 'running' }))
+      .mockResolvedValueOnce(res({ ...rebuild, status: 'failed', failed_documents: 2 }));
+    const snapshots = new Snapshots(createHttp(fetchFn as unknown as typeof globalThis.fetch));
+
+    const result = await snapshots.waitForSnapshotCatalogRebuild('r1', { intervalMs: 1 });
+
+    expect(fetchFn).toHaveBeenCalledTimes(3);
+    expect(result.status).toBe('failed');
+  });
+
+  it('waitForSnapshotCatalogRebuild throws on timeout', async () => {
+    const fetchFn = mockFetch(200, { ...rebuild, status: 'running' });
+    const snapshots = new Snapshots(createHttp(fetchFn));
+
+    await expect(snapshots.waitForSnapshotCatalogRebuild('r1', { intervalMs: 1, timeoutMs: 5 }))
+      .rejects.toThrow(/[Tt]ime/);
+  });
+});
+
 describe('Snapshots read API', () => {
   it('getRelationSnapshots lists published snapshots', async () => {
     const entry = {
