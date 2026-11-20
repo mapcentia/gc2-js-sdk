@@ -491,6 +491,13 @@ export interface MetadataRelationInfo {
   sort_id?: number | null;
   tags?: string[] | null;
   properties?: Record<string, unknown> | null;
+  /**
+   * Per-column OpenSearch mapping overrides (`elasticsearchtype`, `analyzer`,
+   * `search_analyzer`, ...), keyed by column name. Replaces the relation's
+   * whole block, so send every column that has overrides; `{}` clears them.
+   * Takes effect when the search index is rebuilt.
+   */
+  elasticsearch?: Record<string, unknown> | null;
   fields?: Record<string, MetadataFieldInfo>;
 }
 

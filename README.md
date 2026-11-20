@@ -817,6 +817,68 @@ String fields are limited to 255 characters, and `extent_layer` must be a regist
 
 Status runs `pending → running → succeeded | failed | cancelled`; `stale` marks a running job whose heartbeat stopped 10 minutes ago. After a 202 from `deleteSeedJob` the job is not stopped yet — poll `getSeedJob` until `status` is `cancelled`. Errors throw `CentiaApiError`: 400 `INVALID_REQUEST`, 403 `INSUFFICIENT_PRIVILEGES`, 404 `JOB_NOT_FOUND`, and on POST 404 `TILESET_NOT_FOUND` (tileset not in the mapcache config) or `NOT_FOUND` (no mapcache config for the database), 429 `TOO_MANY_PENDING`.
 
+## Search
+
+`Search` wraps the Search API: full-text search in a relation's OpenSearch index (`/api/v4/schemas/{schema}/tables/{table}/search`) and the per-database analysis settings (`/api/v4/search/settings`). Queries and responses are passed to and from OpenSearch `_search` unaltered. Searching is open to sub-users with read access to the relation; building and dropping indexes and the settings are for the database owner only.
+
+```ts
+import { createCentiaClient, Search } from '@mapcentia/gc2-sdk'
+import type { SearchSource } from '@mapcentia/gc2-sdk'
+
+const search = new Search(http)
+
+// (Re)build the index from the table/view: drops any existing index, bulk indexes
+// all rows and refreshes, so it is searchable immediately. Needs a primary key.
+const built = await search.buildSearchIndex('my_schema', 'my_table')
+// { index: 'mydb_my_schema_my_table', message: 'Indexed 42 documents', errors: false, errors_in: [] }
+if (built.errors) console.warn(built.errors_in) // some documents failed
+
+// URI search: q, size, from, sort, _source, default_operator, df (any _search URI parameter works).
+// Attribute fields are addressed as properties.<column>.
+const byUri = await search.search('my_schema', 'my_table', {
+  q: 'properties.name:Findme',
+  size: 20,
+  sort: 'properties.name.keyword:asc',
+})
+
+// Query DSL body: query, size, from, sort, _source, aggs, highlight (any _search body works)
+const byDsl = await search.searchPost<SearchSource<{ name: string }>>('my_schema', 'my_table', {
+  query: { match: { 'properties.name': 'Findme' } },
+  sort: [{ 'properties.name.keyword': 'asc' }],
+  _source: ['properties.name'],
+})
+console.log(byDsl.hits.total.value)
+for (const hit of byDsl.hits.hits) {
+  // _source is the GeoJSON-like document: { properties, geometry }
+  console.log(hit._id, hit._score, hit._source.properties.name)
+}
+
+// Per-column mapping overrides live in the relation's metadata and take effect on the next build.
+// PATCH replaces the relation's whole elasticsearch block: send every column that has overrides.
+// (client is the createCentiaAdminClient() instance)
+await client.provisioning.metadata.patchMetaData({
+  relations: { 'my_schema.my_table': { elasticsearch: {
+    name: { elasticsearchtype: 'text', analyzer: 'auto_complete_analyzer', search_analyzer: 'auto_complete_search_analyzer' },
+  } } },
+})
+
+// Per-database analysis block ({ analysis: { analyzer, tokenizer, filter, ... } }).
+// PUT replaces the default block wholesale and echoes the stored one. It applies to
+// indexes built after the call, so rebuild existing indexes to pick it up.
+const settings = await search.getSearchSettings()
+await search.putSearchSettings({
+  analysis: {
+    analyzer: { my_analyzer: { type: 'custom', tokenizer: 'standard', filter: ['lowercase', 'my_syn'] } },
+    filter: { my_syn: { type: 'synonym', synonyms: ['vej, road'] } },
+  },
+})
+
+// Drop the index; the table itself is not touched. Resolves to { index, dropped: true }
+await search.dropSearchIndex('my_schema', 'my_table')
+```
+
+Errors throw `CentiaApiError` with status/code: 400 `SEARCH_ERROR` (invalid query), `INDEX_BUILD_ERROR` (no primary key, or OpenSearch rejected the index) or `INVALID_DATA` (settings without an `analysis` object), 403 `NOT_OWNER` (or no read access when searching), 404 `INDEX_NOT_FOUND` (unknown relation, or no index built yet) or `INDEX_DROP_ERROR`.
+
 ## Error handling
 
 - Network/HTTP errors: thrown as `Error` with the status/body text when available.
