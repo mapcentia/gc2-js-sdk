@@ -193,6 +193,28 @@ describe('CentiaHttpClient', () => {
       }
     });
 
+    it('takes the code from errorCode when the body carries a numeric code', async () => {
+      const body = { success: false, message: 'No search index', code: 404, errorCode: 'INDEX_NOT_FOUND' };
+      const client = createCentiaClient({ baseUrl: 'https://api.example.com', fetch: mockFetch(404, body) });
+
+      const err = await client.request({ path: 'api/v4/x', method: 'GET' }).catch((e) => e);
+
+      expect(err.status).toBe(404);
+      expect(err.code).toBe('INDEX_NOT_FOUND');
+      expect(err.details).toEqual(body);
+    });
+
+    it('leaves code undefined when the body only carries a numeric code', async () => {
+      const client = createCentiaClient({
+        baseUrl: 'https://api.example.com',
+        fetch: mockFetch(404, { message: 'Not found', code: 404 }),
+      });
+
+      const err = await client.request({ path: 'api/v4/x', method: 'GET' }).catch((e) => e);
+
+      expect(err.code).toBeUndefined();
+    });
+
     it('throws CentiaApiError with fallback message for non-JSON error', async () => {
       const fetchFn = vi.fn().mockResolvedValue({
         status: 500,

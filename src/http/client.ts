@@ -13,6 +13,16 @@ function expectedStatuses(expected: number | number[] | undefined): number[] {
 }
 
 /**
+ * The machine-readable error code of an error body. The v4 API sends it as
+ * `errorCode` ("INDEX_NOT_FOUND") next to a numeric `code` that repeats the
+ * HTTP status; a string `code` is accepted too.
+ */
+function errorCodeOf(parsed: any): string | undefined {
+  if (typeof parsed?.errorCode === 'string') return parsed.errorCode;
+  return typeof parsed?.code === 'string' ? parsed.code : undefined;
+}
+
+/**
  * Unified HTTP client for the GC2 API.
  * Works in both Node.js and browser environments.
  */
@@ -134,7 +144,7 @@ export class CentiaHttpClient {
       throw new CentiaApiError({
         message: (parsed?.message ?? parsed?.error ?? bodyText) || `Unexpected status ${response.status}`,
         status: response.status,
-        code: parsed?.code,
+        code: errorCodeOf(parsed),
         details: parsed,
         requestId: response.headers.get('x-request-id') ?? undefined,
         method: opts.method,
@@ -222,7 +232,7 @@ export class CentiaHttpClient {
       throw new CentiaApiError({
         message: msg,
         status: response.status,
-        code: parsed?.code,
+        code: errorCodeOf(parsed),
         details: parsed,
         requestId: response.headers.get('x-request-id') ?? undefined,
         method: opts.method,
