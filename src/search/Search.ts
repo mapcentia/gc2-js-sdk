@@ -140,8 +140,9 @@ export class Search {
    * Search the relation's index with OpenSearch URI-search parameters, e.g.
    * `{ q: 'properties.name:Findme', size: 20 }`. Without parameters every
    * document matches. Use `searchPost` for a query DSL body.
-   * Throws `CentiaApiError`: 400 `SEARCH_ERROR` (invalid query), 403 (no read
-   * access), 404 `INDEX_NOT_FOUND` (unknown relation, or no index built).
+   * Throws `CentiaApiError`: 400 `SEARCH_ERROR` (invalid query), 403 `INSUFFICIENT_PRIVILEGES` (no read
+   * access) or `GEOFENCE_RULES_APPLY` (a deny/limit rule applies to the sub-user), 404 `INDEX_NOT_FOUND`
+   * (unknown relation, or no index built).
    */
   async search<S = SearchSource>(schema: string, table: string, params?: SearchParams): Promise<SearchResult<S>> {
     const query: Record<string, string> = {};
@@ -158,8 +159,9 @@ export class Search {
 
   /**
    * Search the relation's index with an OpenSearch query DSL body.
-   * Throws `CentiaApiError`: 400 `SEARCH_ERROR` (invalid query), 403 (no read
-   * access), 404 `INDEX_NOT_FOUND` (unknown relation, or no index built).
+   * Throws `CentiaApiError`: 400 `SEARCH_ERROR` (invalid query), 403 `INSUFFICIENT_PRIVILEGES` (no read
+   * access) or `GEOFENCE_RULES_APPLY` (a deny/limit rule applies to the sub-user), 404 `INDEX_NOT_FOUND`
+   * (unknown relation, or no index built).
    */
   async searchPost<S = SearchSource>(schema: string, table: string, body: SearchQuery): Promise<SearchResult<S>> {
     return this.client.request({

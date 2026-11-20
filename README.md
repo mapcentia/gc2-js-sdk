@@ -877,7 +877,7 @@ await search.putSearchSettings({
 await search.dropSearchIndex('my_schema', 'my_table')
 ```
 
-Errors throw `CentiaApiError` with status/code: 400 `SEARCH_ERROR` (invalid query), `INDEX_BUILD_ERROR` (no primary key, or OpenSearch rejected the index) or `INVALID_DATA` (settings without an `analysis` object), 403 `NOT_OWNER` (or no read access when searching), 404 `INDEX_NOT_FOUND` (unknown relation, or no index built yet) or `INDEX_DROP_ERROR`.
+Errors throw `CentiaApiError` with status/code: 400 `SEARCH_ERROR` (invalid query), `INDEX_BUILD_ERROR` (no primary key, or OpenSearch rejected the index) or `INVALID_DATA` (settings without an `analysis` object), 403 `NOT_OWNER`, and when a sub-user searches 403 `INSUFFICIENT_PRIVILEGES` (no read access) or `GEOFENCE_RULES_APPLY` (a deny/limit rule applies), 404 `INDEX_NOT_FOUND` (unknown relation, or no index built yet) or `INDEX_DROP_ERROR`.
 
 ## Error handling
 
