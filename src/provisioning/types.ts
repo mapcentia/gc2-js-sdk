@@ -771,7 +771,10 @@ export interface CommitResult {
 
 // ===== Schema tile settings =====
 
-/** Cache backend for a schema's merged tileset. */
+/**
+ * Cache backend for a schema's merged tileset. `mbtiles` holds the image
+ * tileset only; the `.mvt` tileset then stays in sqlite.
+ */
 export type SchemaTileCache = 'sqlite' | 'disk' | 'mbtiles' | 'memcache' | 's3';
 
 /** Format of a schema's merged image tileset. The `.mvt` tileset is always MVT and not configurable. */
