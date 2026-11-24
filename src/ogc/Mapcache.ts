@@ -43,14 +43,14 @@ export interface MapcacheTilesetWipeStarted {
   tileset: string;
 }
 
-/** 200 from a full delete that wiped the store synchronously (sqlite/bdb, or the disk fallback). */
+/** 200 from a full delete that wiped the store synchronously (sqlite/mbtiles/bdb, or the disk fallback). */
 export interface MapcacheTilesetWipeCompleted {
   success: boolean;
   mode: 'wipe';
   message: string;
   backend: string;
   tileset: string;
-  /** Tiles removed (sqlite), or 1/0 for whether a directory existed (bdb/disk). */
+  /** Tiles removed (sqlite, mbtiles), or 1/0 for whether a directory existed (bdb/disk). */
   removed: number;
 }
 
@@ -124,7 +124,7 @@ export class Mapcache {
    * Delete a tileset's cached tiles (optionally scoped by extent and zoom).
    * A scoped delete runs `mapcache_seed -m delete` as a background job (202,
    * `mode: 'seed'`). A full delete wipes the backend store: synchronously
-   * for sqlite/bdb (200, `mode: 'wipe'` with `removed`), in the background
+   * for sqlite/mbtiles/bdb (200, `mode: 'wipe'` with `removed`), in the background
    * for disk (202, `mode: 'wipe'` with `uuid`). s3/memcache reject a full
    * delete with 400 `UNSUPPORTED_BACKEND` — a scoped delete works for every
    * backend and is the only way to clear an s3-backed cache.

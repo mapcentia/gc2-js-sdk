@@ -625,7 +625,7 @@ export interface FileProcessResponse {
 
 export type LayerGeotype = 'Default' | 'POINT' | 'LINE' | 'POLYGON';
 export type LayerTileFormat = 'PNG' | 'jpeg_low' | 'jpeg_medium' | 'jpeg_high';
-export type LayerCacheType = 'disk' | 'sqlite' | 's3' | 'memcache';
+export type LayerCacheType = 'disk' | 'sqlite' | 'mbtiles' | 's3' | 'memcache';
 export type LabelPosition = 'auto' | 'ul' | 'uc' | 'ur' | 'cl' | 'cc' | 'cr' | 'll' | 'lc' | 'lr';
 export type FontWeight = 'normal' | 'bold' | 'italic' | 'bolditalic';
 export type LineCap = 'round' | 'butt' | 'square';
@@ -772,7 +772,7 @@ export interface CommitResult {
 // ===== Schema tile settings =====
 
 /** Cache backend for a schema's merged tileset. */
-export type SchemaTileCache = 'sqlite' | 'disk' | 'memcache' | 's3';
+export type SchemaTileCache = 'sqlite' | 'disk' | 'mbtiles' | 'memcache' | 's3';
 
 /** Format of a schema's merged image tileset. The `.mvt` tileset is always MVT and not configurable. */
 export type SchemaTileFormat = 'PNG' | 'jpeg_low' | 'jpeg_medium' | 'jpeg_high';
