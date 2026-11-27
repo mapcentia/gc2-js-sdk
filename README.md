@@ -561,7 +561,7 @@ const url = ogc.mapUrl('my_database', 'my_schema.roads', { bbox: [9, 55, 10, 56]
 const multi = ogc.datasetMapUrl('my_database', ['my_schema.roads', 'my_schema.buildings'], { width: 512 })
 ```
 
-CRS values are URIs: `OGC_CRS84` (lon/lat, default) or `ogcEpsgCrs(code)`; note `ogcEpsgCrs(4326)` is lat/lon order per OGC API Features Part 2. A collection that exists but is not readable answers `401` (anonymous) or `403` (no privilege); unknown collections and features are `404` — all thrown as `CentiaApiError`. Geofence rules, versioning and workflow are applied server-side.
+CRS values are URIs: `OGC_CRS84` (lon/lat, default) or `ogcEpsgCrs(code)`; note `ogcEpsgCrs(4326)` is lat/lon order per OGC API Features Part 2. A collection that exists but is not readable answers `401` (anonymous) or `403` (no privilege); unknown collections and features are `404` — all thrown as `CentiaApiError`. An unknown database answers `404 DATABASE_NOT_FOUND` (older servers answer `400`). Geofence rules, versioning and workflow are applied server-side.
 
 ## Key/value store
 
