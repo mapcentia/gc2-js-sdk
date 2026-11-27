@@ -63,6 +63,17 @@ export interface TableInfo {
   constraints?: ConstraintInfo[];
   indices?: IndexInfo[];
   comment?: string;
+  /**
+   * Whether the table is versioned. Not present with namesOnly, nor from a
+   * server without versioning in v4. Set with patchTable (database owner only);
+   * setting it to false deletes all ended versions.
+   */
+  versioning?: boolean;
+  /**
+   * Whether the table has workflow. Not present with namesOnly. Set with
+   * patchTable (database owner only); needs versioning.
+   */
+  workflow?: boolean;
 }
 
 export interface GetTableOptions {

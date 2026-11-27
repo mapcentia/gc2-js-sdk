@@ -738,6 +738,60 @@ await features.deleteFeature('my_schema', 'my_table', [1, 2, 3])
 
 `srs` on `postFeature`/`patchFeature` declares the SRID of the *incoming* geometry. Reading requires a key — use the SQL or WFS APIs to query whole collections. PUT is not supported.
 
+## Versioning and workflow
+
+A table can keep every version of its features (`versioning`), and on top of that send edits through an approval workflow (`workflow`). Both are switched per table with `patchTable` on the admin client, by the database owner; `getTable` returns the two flags.
+
+```ts
+import { createCentiaAdminClient, Workflow } from '@mapcentia/gc2-sdk'
+
+const tables = client.provisioning.tables
+
+const table = await tables.getTable('my_schema', 'roads')
+// { name: 'roads', ..., versioning: false, workflow: false }
+
+// Workflow needs versioning; both can be switched on in one request
+await tables.patchTable('my_schema', 'roads', { versioning: true, workflow: true })
+```
+
+> **Switching off loses data.** `versioning: false` deletes all ended versions and drops the `gc2_version_*` columns — the history is gone. `workflow: false` drops `gc2_status`/`gc2_workflow` and the table's workflow log.
+
+- Database owner only (`403 SUPER_USER_ONLY`), tables only (`409 NOT_A_TABLE`).
+- `workflow: true` without versioning: `409 VERSIONING_REQUIRED`. `versioning: false` while workflow stays on: `409 WORKFLOW_ENABLED` — send both as `false`.
+- Enabling workflow on a database that has not been migrated: `501 HSTORE_NOT_AVAILABLE`.
+- A server without versioning in v4 rejects the two fields with `400`. Send them only when `getTable` returned them.
+
+`Workflow` wraps the roles and the items of a workflow table. It takes a `CentiaHttpClient` and requires a Bearer token. Access to the items is by workflow role, not schema ownership: a sub-user with a role can use them on a table in the owner's schema.
+
+```ts
+const workflow = new Workflow(http)
+
+// Roles: 'author' (edits become drafts), 'reviewer', 'publisher', or 'none'.
+// Merges with the existing roles; database owner only.
+await workflow.patchWorkflowRoles('my_schema', 'roads', [
+  { subuser: 'joe', role: 'author' },
+  { subuser: 'ann', role: 'reviewer' },
+])
+const roles = await workflow.getWorkflowRoles('my_schema', 'roads')
+
+// The items the caller can still move forward, newest first
+const pending = await workflow.getWorkflowItem('my_schema', 'roads')
+// [{ gid: 42, version_gid: 17, status: 1, status_name: 'drafted', operation: 'insert',
+//    user: 'joe', author: 'joe', reviewer: null, publisher: null, created: '2026-11-27 10:15:00+00' }]
+
+// Every item, one item, or several
+const all = await workflow.getWorkflowItem('my_schema', 'roads', undefined, { all: true })
+const one = await workflow.getWorkflowItem('my_schema', 'roads', 42)
+const some = await workflow.getWorkflowItem('my_schema', 'roads', [42, 43])
+
+// Approve: signs with the caller's role and sets that role's status. A list is all or nothing.
+await workflow.patchWorkflowItem('my_schema', 'roads', [42, 43])
+```
+
+Items are created by edits through the Feature API and WFS-T on a workflow table, and move through `drafted` (1) → `reviewed` (2) → `published` (3). An approval sets the status of the caller's role: author 1, reviewer 2, publisher and the database owner 3. Without `{ all: true }` a reviewer sees drafted items, a publisher and the owner see drafted and reviewed ones, and an author none. A sub-user without a role reads published features only.
+
+Errors are thrown as `CentiaApiError`: `403 NO_WORKFLOW_ROLE` (no role on the table, also when reading items), `404 WORKFLOW_ITEM_NOT_FOUND`, `404 FEATURE_NOT_FOUND`, `404 TABLE_NOT_FOUND`, `409 WORKFLOW_STATUS_CONFLICT` (already at or past the caller's status), `409 VERSION_ENDED`, `409 WORKFLOW_NOT_ENABLED`, `400 INVALID_REQUEST` (a gid that is not digits, or an unknown role).
+
 ## Snapshots (GeoParquet exports)
 
 `Snapshots` wraps the snapshot API: asynchronous GeoParquet exports of a table or view to S3, and read access to the published snapshot files. It takes a `CentiaHttpClient` and requires a Bearer token:

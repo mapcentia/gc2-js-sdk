@@ -32,6 +32,7 @@ import { Ogc } from "./ogc/Ogc"
 import { Keyvalue } from "./keyvalue/Keyvalue"
 import { Configurations } from "./configurations/Configurations"
 import { Symbols } from "./symbols/Symbols"
+import { Workflow } from "./workflow/Workflow"
 import { Legends, legendImageUrl } from "./legends/Legends"
 import { Features } from "./features/Features"
 import { Snapshots } from "./snapshots/Snapshots"
@@ -70,6 +71,7 @@ export {
     Keyvalue,
     Configurations,
     Symbols,
+    Workflow,
     Legends,
     legendImageUrl,
     Features,
@@ -197,6 +199,7 @@ export type { OgcLink, OgcLandingPage, OgcConformance, OgcExtent, OgcCollection,
 export type { KeyvalueEntry, CreateKeyvalueRequest, PatchKeyvalueRequest, KeyvalueProjection } from "./keyvalue/Keyvalue";
 export type { Configuration, CreateConfigurationRequest, PatchConfigurationRequest, CreateConfigurationResponse } from "./configurations/Configurations";
 export type { SymbolInfo } from "./symbols/Symbols";
+export type { WorkflowRole, WorkflowRoleName, WorkflowItem, GetWorkflowItemOptions } from "./workflow/Workflow";
 export type { Legend, LegendClass } from "./legends/Legends";
 export type { GeoJsonGeometry, GeoJsonFeature, GeoJsonFeatureCollection, FeatureKey, FeatureSrsOptions, PatchFeatureOptions } from "./features/Features";
 export type { SnapshotStatus, SnapshotFormat, SnapshotDate, SnapshotFormatResult, SnapshotRequest, SnapshotAccepted, SnapshotColumn, SnapshotJob, RelationSnapshotFile, RelationSnapshot, RelationSnapshotDetails, GetSnapshotsOptions, WaitForSnapshotOptions, SnapshotDataOptions, SnapshotCatalogRebuildStatus, SnapshotCatalogRebuildAccepted, SnapshotCatalogRebuild } from "./snapshots/Snapshots";
