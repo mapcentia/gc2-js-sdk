@@ -31,6 +31,8 @@ import { Mapcache } from "./ogc/Mapcache"
 import { Ogc } from "./ogc/Ogc"
 import { Keyvalue } from "./keyvalue/Keyvalue"
 import { Configurations } from "./configurations/Configurations"
+import { Symbols } from "./symbols/Symbols"
+import { Legends, legendImageUrl } from "./legends/Legends"
 import { Features } from "./features/Features"
 import { Snapshots } from "./snapshots/Snapshots"
 import { Scheduler } from "./scheduler/Scheduler"
@@ -67,6 +69,9 @@ export {
     Ogc,
     Keyvalue,
     Configurations,
+    Symbols,
+    Legends,
+    legendImageUrl,
     Features,
     Snapshots,
     Scheduler,
@@ -191,6 +196,8 @@ export { OGC_CRS84, ogcEpsgCrs } from "./ogc/Ogc";
 export type { OgcLink, OgcLandingPage, OgcConformance, OgcExtent, OgcCollection, OgcCollections, OgcFeature, OgcFeatureCollection, OgcCollectionsOptions, OgcBbox, OgcSpatialOptions, OgcItemsOptions, OgcItemOptions, OgcMapOptions } from "./ogc/Ogc";
 export type { KeyvalueEntry, CreateKeyvalueRequest, PatchKeyvalueRequest, KeyvalueProjection } from "./keyvalue/Keyvalue";
 export type { Configuration, CreateConfigurationRequest, PatchConfigurationRequest, CreateConfigurationResponse } from "./configurations/Configurations";
+export type { SymbolInfo } from "./symbols/Symbols";
+export type { Legend, LegendClass } from "./legends/Legends";
 export type { GeoJsonGeometry, GeoJsonFeature, GeoJsonFeatureCollection, FeatureKey, FeatureSrsOptions, PatchFeatureOptions } from "./features/Features";
 export type { SnapshotStatus, SnapshotFormat, SnapshotDate, SnapshotFormatResult, SnapshotRequest, SnapshotAccepted, SnapshotColumn, SnapshotJob, RelationSnapshotFile, RelationSnapshot, RelationSnapshotDetails, GetSnapshotsOptions, WaitForSnapshotOptions, SnapshotDataOptions, SnapshotCatalogRebuildStatus, SnapshotCatalogRebuildAccepted, SnapshotCatalogRebuild } from "./snapshots/Snapshots";
 export type { SchedulerRunStatus, SchedulerJobInput, PatchSchedulerJobRequest, SchedulerJob, SchedulerJobsCreated, SchedulerRun, PostSchedulerRunRequest, SchedulerRunAccepted, SchedulerRunStopped, GetSchedulerRunsOptions } from "./scheduler/Scheduler";

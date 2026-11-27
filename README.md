@@ -634,6 +634,41 @@ const url = configurations.publicConfigurationUrl('my_database', key) // the .js
 
 Errors are thrown as `CentiaApiError`: unknown key `404 CONFIGURATION_NOT_FOUND` (on the public route also for unpublished ones), unknown database `404 DATABASE_NOT_FOUND`, a `body` that is not JSON text for an object or array `400 INVALID_REQUEST`, missing or unknown fields `400 INPUT_VALIDATION_ERROR`. `null` is rejected in every field.
 
+## Symbols and legends
+
+`Symbols` wraps `/api/v4/symbols`: the built-in MapServer symbols a style's `symbol` can name, with type and points so you can draw a preview. Read only; requires a Bearer token (sub-users allowed).
+
+```ts
+import { createCentiaClient, Symbols, Legends, legendImageUrl } from '@mapcentia/gc2-sdk'
+
+const symbols = new Symbols(http)
+
+const all = await symbols.getSymbol()                    // all built-in symbols, in mapfile order
+const arrow = await symbols.getSymbol('arrow')           // one object
+const some = await symbols.getSymbol(['arrow', 'circle']) // array, in the order asked
+// { name: 'arrow', type: 'vector', filled: true, points: [[0, 0.4], [3, 0.4], ...], anchorpoint: [0, 0.5] }
+```
+
+`type` is `vector` (`points` is an outline, y grows downwards) or `ellipse` (the first point is the x and y radius). `anchorpoint` is absent on symbols that define none. An unknown name throws `CentiaApiError` `404 SYMBOL_NOT_FOUND`. A style's `symbol` is not limited to this list — it may also be an image URL or a `[column]` reference.
+
+`Legends` wraps `/api/v4/legends`: the legend of one or more layers, with a small PNG icon per class. The endpoint accepts a Bearer token, HTTP Basic or no credentials; a token must belong to the `database` in the path (`401 TOKEN_DATABASE_MISMATCH` otherwise). An unknown database answers `404 DATABASE_NOT_FOUND`.
+
+```ts
+const legends = new Legends(http)
+
+// Layers as 'schema.table'; a bare 'schema' stands for all layers of that schema
+const result = await legends.getLegend('my_database', ['my_schema.roads', 'my_schema.buildings'])
+// [{ id: 'my_schema.roads', title: 'Roads', classes: [{ name: 'Motorvej', expression: "[type]='motorvej'", img: 'iVBORw0...' }] }]
+
+for (const layer of result) {
+  for (const cls of layer.classes) {
+    const src = legendImageUrl(cls.img) // 'data:image/png;base64,...' or null
+  }
+}
+```
+
+The result is always an array and may be empty: a layer the caller may not read, or that does not exist, is left out instead of failing the request. `name` is null for the single picture of a layer whose legend comes from an external source (external WMS, QGIS project or a legend URL); `img` is null when the icon could not be drawn.
+
 ## Feature API (GeoJSON)
 
 `Features` wraps the `/api/v4/schemas/{schema}/tables/{table}/features` endpoints for reading and writing table rows as GeoJSON through WFS-T transactions. It takes a `CentiaHttpClient` and requires a Bearer token:
