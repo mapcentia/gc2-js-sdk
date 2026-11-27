@@ -107,6 +107,7 @@ export type {
   DryRunResult,
   FunctionInvocationRecord,
   // Metadata
+  MetadataAuthentication,
   MetadataFieldInfo,
   MetadataRelationInfo,
   PatchMetadataRequest,

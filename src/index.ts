@@ -174,6 +174,7 @@ export type {
     AsyncInvocationAccepted,
     DryRunResult,
     FunctionInvocationRecord,
+    MetadataAuthentication,
     MetadataFieldInfo,
     MetadataRelationInfo,
     PatchMetadataRequest,

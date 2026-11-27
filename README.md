@@ -618,6 +618,54 @@ await metadata.getMetaDataPublic('my_database', 'my_schema.roads', { noRestricti
 
 `relations` is an object keyed by `schema.table`, not an array. `getMetaDataPublic` returns only relations that are readable without credentials: a protected relation is left out instead of failing the request, so asking for one by name gives `{ relations: {} }`. An unknown database throws `CentiaApiError` (`404 DATABASE_NOT_FOUND`; older servers answer `400`).
 
+### Relation and column settings
+
+Besides the descriptive metadata (`title`, `abstract`, `group`, `tags`, `properties`, ...), a relation carries settings that decide how it is served, and each column settings for how clients present it. `getMetaData` returns them and `patchMetaData` sets them:
+
+```ts
+const { relations } = await metadata.getMetaData('my_schema.roads')
+const roads = relations['my_schema.roads']
+// { ..., authentication: 'Write', enable_ows: true, editable: true, note: null,
+//   fields: { name: { alias: 'Name', searchable: true, ignore: false, ... } } }
+
+// Only send the settings when the server returned them — see below
+if ('authentication' in roads) {
+  await metadata.patchMetaData({
+    relations: {
+      'my_schema.roads': {
+        authentication: 'Read/write',
+        editable: false,
+        legend_url: null, // null or '' clears a text setting
+        fields: {
+          name: { searchable: true, link: true, link_prefix: 'https://example.com/roads/' },
+          internal_id: { ignore: true },
+        },
+      },
+    },
+  })
+}
+```
+
+Relation settings:
+
+- `authentication`: `'Write'` (anyone reads, writing needs credentials), `'Read/write'` or `'None'`.
+- Booleans: `enable_ows`, `editable`, `base_layer`, `tile_cache`, `not_queryable`, `skip_conflict`, `enable_sql_filter`.
+- Text (`string | null`): `note`, `meta_url`, `legend_url`, `feature_id`.
+- Text, returned to the database owner only (absent for a sub-user): `wms_source`, `wms_client_epsgs`, `bitmap_source`, `trigger_table`.
+
+Column settings, under `fields[column]`:
+
+- Booleans: `mouseover`, `searchable`, `filter`, `not_exportable`, `autocomplete`, `conflict`, `link`, `ignore`, `image`.
+- Text (`string | null`): `desc`, `content`, `link_prefix`, `link_suffix`, `template`.
+
+Things to know:
+
+- Only the database owner may send relation settings (`403 SUPER_USER_ONLY`), and `getMetaDataPublic` never returns them. Column settings are returned by both reads.
+- `filter` on a column means "disable filtering": `true` = not filterable.
+- A column with `ignore: true` stays listed by `getMetaData`, so it can be switched back, and is left out of `getMetaDataPublic`.
+- A patch merges per column: sending one setting keeps the others, and a column patched without `properties` keeps its stored properties.
+- A server without these settings rejects them with `400`, since v4 rejects unknown body fields. Send them only when `getMetaData` returned them, e.g. when the relation has the key `authentication`.
+
 ## Key/value store
 
 `Keyvalue` wraps the `/api/v4/keyvalue` endpoints for storing arbitrary JSON under globally unique keys. It takes a `CentiaHttpClient` and requires a Bearer token:

@@ -46,6 +46,61 @@ describe('MetadataWrite', () => {
     expect(res).toEqual({ location: '/api/v4/meta' });
   });
 
+  it('patchMetaData sends relation and column settings unchanged', async () => {
+    const fetchFn = mockFetch(303, null, { location: '/api/v4/meta' });
+    const client = createClient(fetchFn);
+    const body = {
+      relations: {
+        'my_schema.roads': {
+          authentication: 'Read/write' as const,
+          enable_ows: true,
+          editable: false,
+          skip_conflict: true,
+          note: null,
+          legend_url: 'https://example.com/legend.png',
+          wms_source: '',
+          fields: {
+            name: { searchable: true, filter: true, link: true, link_prefix: 'https://example.com/', template: null },
+            secret: { ignore: true },
+          },
+        },
+      },
+    };
+
+    await client.provisioning.metadata.patchMetaData(body);
+
+    const [url, init] = lastCall(fetchFn);
+    expect(url).toBe('https://api.example.com/api/v4/meta');
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body as string)).toEqual(body);
+  });
+
+  it('getMetaData returns relation and column settings', async () => {
+    const body = {
+      relations: {
+        'my_schema.roads': {
+          authentication: 'Write',
+          enable_ows: true,
+          not_queryable: false,
+          note: null,
+          wms_source: null,
+          fields: { name: { mouseover: true, ignore: false, desc: 'Road name', content: 'plain' } },
+        },
+      },
+    };
+    const fetchFn = mockFetch(200, body);
+    const client = createClient(fetchFn);
+
+    const res = await client.provisioning.metadata.getMetaData('my_schema.roads');
+    const rel = res.relations['my_schema.roads'];
+
+    expect(rel.authentication).toBe('Write');
+    expect(rel.enable_ows).toBe(true);
+    expect(rel.wms_source).toBeNull();
+    expect(rel.fields.name.mouseover).toBe(true);
+    expect(rel.fields.name.content).toBe('plain');
+  });
+
   it('getMetaData sends GET to /meta/{query} with noRestriction', async () => {
     const body = {
       relations: {

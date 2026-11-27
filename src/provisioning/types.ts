@@ -487,11 +487,52 @@ export interface FunctionInvocationRecord {
 
 // ===== Metadata types =====
 
+/** Who may access a relation's data through the public services (OWS, WFS, OGC API, SQL, tiles). */
+export type MetadataAuthentication = 'Write' | 'Read/write' | 'None';
+
+/**
+ * Column metadata for patchMetaData. The patch merges per column: sending one
+ * setting keeps the others.
+ */
 export interface MetadataFieldInfo {
   // `null` clears the field; the API accepts it, so allow it here.
   alias?: string | null;
   queryable?: boolean;
   sort_id?: number | null;
+  properties?: Record<string, unknown> | unknown[] | null;
+  /** Description of the column. */
+  desc?: string | null;
+  /** Show the column in mouse-over (hover) info. */
+  mouseover?: boolean;
+  /** Include the column in free-text search in clients. */
+  searchable?: boolean;
+  /**
+   * Disable filtering on the column in clients: true = NOT filterable.
+   */
+  filter?: boolean;
+  /** Leave the column out of exports/downloads. */
+  not_exportable?: boolean;
+  /** Offer autocomplete on the column when editing or filtering. */
+  autocomplete?: boolean;
+  /** Show the column in conflict search results. */
+  conflict?: boolean;
+  /** Present the value as a link (see link_prefix, link_suffix). */
+  link?: boolean;
+  /**
+   * Hide the column from clients. An ignored column is left out of
+   * getMetaDataPublic but stays listed by getMetaData, so it can be switched back.
+   */
+  ignore?: boolean;
+  /** Present the value as an image. */
+  image?: boolean;
+  /** How clients present the value, for example `plain`, `image` or `video`. */
+  content?: string | null;
+  /** Text put before the value to make the link. */
+  link_prefix?: string | null;
+  /** Text put after the value to make the link. */
+  link_suffix?: string | null;
+  /** Template (Mustache) used to present the value. */
+  template?: string | null;
 }
 
 export interface MetadataRelationInfo {
@@ -510,6 +551,46 @@ export interface MetadataRelationInfo {
    */
   elasticsearch?: Record<string, unknown> | null;
   fields?: Record<string, MetadataFieldInfo>;
+  // --- Relation settings. Only the database owner may send any of them
+  // (403 SUPER_USER_ONLY). For the text settings null or "" clears the value.
+  /**
+   * Who may access the relation's data through the public services.
+   * The read-only `_authentication` carries the same value.
+   */
+  authentication?: MetadataAuthentication;
+  /** Whether the relation is served as a layer through OWS (WMS/WFS). */
+  enable_ows?: boolean;
+  /** Whether features may be edited through WFS-T and the Feature API. */
+  editable?: boolean;
+  /** Marks the layer as a base layer for clients. */
+  base_layer?: boolean;
+  /** Legacy flag: clients fetch the layer through the tile cache. */
+  tile_cache?: boolean;
+  /** Excludes the layer from feature info (click) queries in clients. */
+  not_queryable?: boolean;
+  /** Leaves the layer out of conflict searches. */
+  skip_conflict?: boolean;
+  /** Lets clients filter the layer with SQL. */
+  enable_sql_filter?: boolean;
+  /** Internal note about the relation. */
+  note?: string | null;
+  /** Link to external metadata about the relation. */
+  meta_url?: string | null;
+  /** URL of a picture to use as the layer's legend instead of one drawn from its classes. */
+  legend_url?: string | null;
+  /** Column to use as the feature id in WFS instead of the primary key. */
+  feature_id?: string | null;
+  /**
+   * URL of an external WMS (or a QGIS Server project) that draws the layer
+   * instead of MapServer with the layer's classes.
+   */
+  wms_source?: string | null;
+  /** Space separated EPSG codes the external WMS in `wms_source` is offered in. */
+  wms_client_epsgs?: string | null;
+  /** Path or connection of a raster source for the layer. */
+  bitmap_source?: string | null;
+  /** Relation whose changes should clear the tile cache of this layer. */
+  trigger_table?: string | null;
 }
 
 export interface PatchMetadataRequest {
@@ -529,8 +610,40 @@ export interface MetadataField {
   alias?: string | null;
   queryable?: boolean;
   sort_id?: number | null;
-  desc?: string | null;
   properties?: Record<string, unknown> | unknown[] | null;
+  /** Description of the column. */
+  desc?: string | null;
+  /** Show the column in mouse-over (hover) info. */
+  mouseover?: boolean;
+  /** Include the column in free-text search in clients. */
+  searchable?: boolean;
+  /**
+   * Disable filtering on the column in clients: true = NOT filterable.
+   */
+  filter?: boolean;
+  /** Leave the column out of exports/downloads. */
+  not_exportable?: boolean;
+  /** Offer autocomplete on the column when editing or filtering. */
+  autocomplete?: boolean;
+  /** Show the column in conflict search results. */
+  conflict?: boolean;
+  /** Present the value as a link (see link_prefix, link_suffix). */
+  link?: boolean;
+  /**
+   * Hide the column from clients. An ignored column is left out of
+   * getMetaDataPublic but stays listed by getMetaData, so it can be switched back.
+   */
+  ignore?: boolean;
+  /** Present the value as an image. */
+  image?: boolean;
+  /** How clients present the value, for example `plain`, `image` or `video`. */
+  content?: string | null;
+  /** Text put before the value to make the link. */
+  link_prefix?: string | null;
+  /** Text put after the value to make the link. */
+  link_suffix?: string | null;
+  /** Template (Mustache) used to present the value. */
+  template?: string | null;
   _type?: string;
   _character_maximum_length?: number | null;
   _numeric_precision?: number | null;
@@ -556,6 +669,46 @@ export interface MetadataRelation {
   properties?: Record<string, unknown> | null;
   elasticsearch?: Record<string, unknown> | null;
   fields: Record<string, MetadataField>;
+  // --- Relation settings. Returned by getMetaData only (never by
+  // getMetaDataPublic), and only by servers that have them.
+  /**
+   * Who may access the relation's data through the public services.
+   * The read-only `_authentication` carries the same value.
+   */
+  authentication?: MetadataAuthentication;
+  /** Whether the relation is served as a layer through OWS (WMS/WFS). */
+  enable_ows?: boolean;
+  /** Whether features may be edited through WFS-T and the Feature API. */
+  editable?: boolean;
+  /** Marks the layer as a base layer for clients. */
+  base_layer?: boolean;
+  /** Legacy flag: clients fetch the layer through the tile cache. */
+  tile_cache?: boolean;
+  /** Excludes the layer from feature info (click) queries in clients. */
+  not_queryable?: boolean;
+  /** Leaves the layer out of conflict searches. */
+  skip_conflict?: boolean;
+  /** Lets clients filter the layer with SQL. */
+  enable_sql_filter?: boolean;
+  /** Internal note about the relation. */
+  note?: string | null;
+  /** Link to external metadata about the relation. */
+  meta_url?: string | null;
+  /** URL of a picture to use as the layer's legend instead of one drawn from its classes. */
+  legend_url?: string | null;
+  /** Column to use as the feature id in WFS instead of the primary key. */
+  feature_id?: string | null;
+  /**
+   * URL of an external WMS (or a QGIS Server project) that draws the layer
+   * instead of MapServer with the layer's classes. Only returned to the database owner.
+   */
+  wms_source?: string | null;
+  /** Space separated EPSG codes the external WMS in `wms_source` is offered in. Only returned to the database owner. */
+  wms_client_epsgs?: string | null;
+  /** Path or connection of a raster source for the layer. Only returned to the database owner. */
+  bitmap_source?: string | null;
+  /** Relation whose changes should clear the tile cache of this layer. Only returned to the database owner. */
+  trigger_table?: string | null;
   _uuid?: string;
   _schema?: string;
   _rel?: string;
