@@ -786,7 +786,19 @@ const some = await workflow.getWorkflowItem('my_schema', 'roads', [42, 43])
 
 // Approve: signs with the caller's role and sets that role's status. A list is all or nothing.
 await workflow.patchWorkflowItem('my_schema', 'roads', [42, 43])
+
+// The log across tables, newest first: every step of every feature
+const log = await workflow.getWorkflowLog({ schema: 'my_schema', limit: 50, offset: 0 })
+// [{ id: 311, schema: 'my_schema', table: 'roads', gid: 42, version_gid: 17, status: 1, status_name: 'drafted',
+//    operation: 'insert', user: 'joe', author: 'joe', reviewer: null, publisher: null,
+//    created: '2026-11-27 10:15:00+00', roles: { joe: 'author', ann: 'reviewer' } }]
+
+// Send a feature on from a log entry
+const entry = log[0]
+await workflow.patchWorkflowItem(entry.schema, entry.table, entry.gid)
 ```
+
+`getWorkflowLog` is not tied to one table: the database owner gets the whole log, a sub-user the entries of the tables they have a role on, and a sub-user without any role an empty array. All options are optional (`limit` 1-1000, default 100); no total count is returned, so page until fewer than `limit` entries come back. `roles` holds the roles on the table when the step was made. Items from `getWorkflowItem` carry `schema` and `table` too on a server that has the log.
 
 Items are created by edits through the Feature API and WFS-T on a workflow table, and move through `drafted` (1) → `reviewed` (2) → `published` (3). An approval sets the status of the caller's role: author 1, reviewer 2, publisher and the database owner 3. Without `{ all: true }` a reviewer sees drafted items, a publisher and the owner see drafted and reviewed ones, and an author none. A sub-user without a role reads published features only.
 

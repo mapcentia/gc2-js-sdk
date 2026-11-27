@@ -105,6 +105,29 @@ describe('Workflow', () => {
     expect(fetchFn).not.toHaveBeenCalled();
   });
 
+  it('getWorkflowLog sends GET without query by default', async () => {
+    const entry = { id: 311, schema: 'my_schema', table: 'roads', ...item, roles: { joe: 'author' } };
+    const fetchFn = mockFetch(200, [entry]);
+    const result = await create(fetchFn).getWorkflowLog();
+    const [url, init] = lastCall(fetchFn);
+    expect(url).toBe('https://api.example.com/api/v4/workflow-log');
+    expect(init.method).toBe('GET');
+    expect((init.headers as Record<string, string>)['Authorization']).toBe('Bearer test-token');
+    expect(result).toEqual([entry]);
+  });
+
+  it('getWorkflowLog sends schema, limit and offset', async () => {
+    const fetchFn = mockFetch(200, []);
+    const wf = create(fetchFn);
+
+    await wf.getWorkflowLog({ schema: 'my_schema', limit: 50, offset: 100 });
+    expect(lastCall(fetchFn)[0]).toBe('https://api.example.com/api/v4/workflow-log?schema=my_schema&limit=50&offset=100');
+
+    // offset 0 is a value, not "unset"
+    await wf.getWorkflowLog({ offset: 0 });
+    expect(lastCall(fetchFn)[0]).toBe('https://api.example.com/api/v4/workflow-log?offset=0');
+  });
+
   it('throws CentiaApiError with the API code', async () => {
     const fetchFn = mockFetch(409, { code: 409, errorCode: 'WORKFLOW_STATUS_CONFLICT', message: 'Already reviewed' });
     await expect(create(fetchFn).patchWorkflowItem('my_schema', 'roads', 42))

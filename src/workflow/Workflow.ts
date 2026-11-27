@@ -25,6 +25,10 @@ export interface WorkflowRole {
 
 /** Where one feature stands in the workflow of its table: its latest logged step. */
 export interface WorkflowItem {
+  /** Schema of the feature's table. Absent from servers that predate the workflow log. */
+  schema?: string;
+  /** The feature's table. Absent from servers that predate the workflow log. */
+  table?: string;
   /** The feature's primary key value; the id of the item. */
   gid: number;
   /** The feature's version id (gc2_version_gid), the same across all versions of the feature. */
@@ -46,6 +50,46 @@ export interface WorkflowItem {
   created: string;
 }
 
+/** One logged workflow step of a feature. */
+export interface WorkflowLogEntry {
+  /** Id of the log entry. */
+  id: number;
+  /** Schema of the feature's table. */
+  schema: string;
+  /** The feature's table. */
+  table: string;
+  /** The feature's primary key value. With `schema` and `table` it addresses the item for patchWorkflowItem. */
+  gid: number;
+  /** The feature's version id (gc2_version_gid), the same across all versions of the feature. */
+  version_gid: number;
+  /** The status this step gave the feature: 1 drafted, 2 reviewed, 3 published. */
+  status: 1 | 2 | 3;
+  status_name: 'drafted' | 'reviewed' | 'published';
+  /** What the step was. */
+  operation: 'insert' | 'update' | 'delete';
+  /** Who made the step. */
+  user: string;
+  /** Who had signed as author after this step, or null. */
+  author: string | null;
+  /** Who had signed as reviewer after this step, or null. */
+  reviewer: string | null;
+  /** Who had signed as publisher after this step, or null. */
+  publisher: string | null;
+  /** When the step was made. */
+  created: string;
+  /** The workflow roles on the table when the step was made: sub-user => role. */
+  roles: Record<string, string>;
+}
+
+export interface GetWorkflowLogOptions {
+  /** Only entries of tables in this schema. */
+  schema?: string;
+  /** Number of entries to return, 1-1000. Server default: 100. */
+  limit?: number;
+  /** Number of entries to skip. Server default: 0. */
+  offset?: number;
+}
+
 export interface GetWorkflowItemOptions {
   /**
    * List every item of the table instead of only those the caller can still
@@ -65,8 +109,9 @@ function gidPath(gid: Gid | Gid[]): string {
 }
 
 /**
- * Client for the workflow of a versioned table
- * (`/api/v4/schemas/{schema}/tables/{table}/workflow-roles` and `.../workflow-items`).
+ * Client for the workflow of versioned tables
+ * (`/api/v4/schemas/{schema}/tables/{table}/workflow-roles` and `.../workflow-items`,
+ * and the log across tables at `/api/v4/workflow-log`).
  *
  * Workflow is switched on per table with `patchTable(schema, table, { versioning: true, workflow: true })`.
  * Edits through the Feature API and WFS-T then create items that move through
@@ -139,6 +184,28 @@ export class Workflow {
     });
     // The API answers a single object for a one-gid list; keep the array contract.
     return Array.isArray(gid) && !Array.isArray(result) ? [result] : result;
+  }
+
+  /**
+   * The workflow log across tables, newest first: every step logged by an edit
+   * or an approval on a workflow table. The database owner gets the whole log;
+   * a sub-user the entries of the tables they have a role on (none: an empty
+   * array). No total count is returned; page with `limit` and `offset`.
+   *
+   * To send a feature on from an entry, call patchWorkflowItem with the
+   * entry's schema, table and gid.
+   */
+  async getWorkflowLog(opts: GetWorkflowLogOptions = {}): Promise<WorkflowLogEntry[]> {
+    const query: Record<string, string> = {};
+    if (opts.schema != null) query.schema = opts.schema;
+    if (opts.limit != null) query.limit = String(opts.limit);
+    if (opts.offset != null) query.offset = String(opts.offset);
+    return this.client.request<WorkflowLogEntry[]>({
+      path: 'api/v4/workflow-log',
+      method: 'GET',
+      query: Object.keys(query).length > 0 ? query : undefined,
+      contentType: null,
+    });
   }
 
   /**
