@@ -53,7 +53,10 @@ export default class Layers {
     return { location: res.getHeader('Location') ?? '' };
   }
 
-  /** Update layer properties (key-merge on the def JSON). */
+  /**
+   * Update layer properties (key-merge on the def JSON) and/or the layer's
+   * QGIS style (`qml`, `use_qml`). Absent fields are left alone.
+   */
   async patchLayer(layer: string, body: Layer): Promise<LocationResponse> {
     const res = await this.client.requestFull({
       path: this.layerPath(layer),

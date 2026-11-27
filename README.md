@@ -425,6 +425,36 @@ await layers.postStyle('my_schema.my_table.the_geom', 'a1b2c3d4', { color: '#008
 await layers.postLabel('my_schema.my_table.the_geom', 'a1b2c3d4', { text: '[name]', on: true })
 ```
 
+### QGIS style (QML)
+
+A layer can carry a QGIS style next to its classes: `qml` holds the XML text of a `.qml` file (or `null`), and `use_qml` decides who draws the layer — QGIS Server with the QML (`true`) or MapServer with the classes (`false`). Storing a QML does not change the drawing by itself, and switching removes neither the QML nor the classes.
+
+```ts
+const layer = await layers.getLayer('my_schema.my_table.the_geom')
+// { name, properties, classes, qml: string | null, use_qml: boolean }
+
+// Only send the fields when the server returned them — see below
+if ('qml' in layer) {
+  await layers.patchLayer('my_schema.my_table.the_geom', {
+    name: 'my_schema.my_table.the_geom',
+    qml: qmlText,
+    use_qml: true,
+  })
+}
+
+// Back to MapServer and the classes; the QML stays stored
+await layers.patchLayer('my_schema.my_table.the_geom', { name: 'my_schema.my_table.the_geom', use_qml: false })
+
+// Remove the QML (also switches use_qml off)
+await layers.patchLayer('my_schema.my_table.the_geom', { name: 'my_schema.my_table.the_geom', qml: null })
+```
+
+- Both fields belong to `patchLayer` only; `postLayer` does not accept them. Absent fields are left alone.
+- Only the database owner may send them (`403 SUPER_USER_ONLY`); sub-users can read them.
+- A server without QML support rejects the fields with `400`, since v4 rejects unknown body fields. Send them only when `getLayer` returned the `qml` key.
+- `patchLayer` errors, thrown as `CentiaApiError`: `400 INVALID_QML` (not well-formed XML), `400 QML_MISSING` (`use_qml: true` without a stored QML), `400 QML_UNSUPPORTED_GEOMETRY` (not a point, line or polygon layer), `409 EXTERNAL_SOURCE` (the layer is drawn from an external WMS or an uploaded QGIS project).
+- While `use_qml` is true the layer's classes, styles and labels are not used, and `getLegend` answers one entry with `name: null` and the picture from QGIS.
+
 ## Map view configuration (admin client)
 
 Each schema has a map view configuration (initial center, zoom and extent, all in EPSG:3857):

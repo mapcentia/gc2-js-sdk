@@ -733,6 +733,20 @@ export interface Layer {
   name: string;
   properties?: LayerProperties;
   classes?: LayerClass[];
+  /**
+   * The layer's QGIS style (the XML text of a .qml file), or null when it has
+   * none. Storing a QML does not by itself change how the layer is drawn;
+   * `use_qml` does. Accepted by patchLayer only (not postLayer), and only from
+   * the database owner; null or "" removes it and switches `use_qml` off.
+   * Always present in getLayer answers from a server that supports it.
+   */
+  qml?: string | null;
+  /**
+   * Whether the layer is drawn by QGIS Server with its QML (true) or by
+   * MapServer with its classes (false). Switching removes neither. Accepted by
+   * patchLayer only (not postLayer), and only from the database owner.
+   */
+  use_qml?: boolean;
 }
 
 export interface GetLayerOptions {

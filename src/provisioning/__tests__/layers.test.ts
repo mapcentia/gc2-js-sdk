@@ -130,6 +130,44 @@ describe('Layers', () => {
     expect(result.location).toBe('/api/v4/layers/x/classes/a1b2c3d4');
   });
 
+  it('patchLayer sends qml and use_qml at the top level', async () => {
+    const fetchFn = mockFetch(303, null, { location: '/api/v4/layers/my_schema.my_table.the_geom' });
+    const client = createClient(fetchFn);
+    const qml = '<qgis styleCategories="Symbology"><renderer-v2 type="singleSymbol"/></qgis>';
+
+    await client.provisioning.layers.patchLayer('my_schema.my_table.the_geom', {
+      name: 'my_schema.my_table.the_geom',
+      qml,
+      use_qml: true,
+    });
+
+    expect(JSON.parse(lastCall(fetchFn)[1].body as string)).toEqual({
+      name: 'my_schema.my_table.the_geom',
+      qml,
+      use_qml: true,
+    });
+
+    await client.provisioning.layers.patchLayer('my_schema.my_table.the_geom', {
+      name: 'my_schema.my_table.the_geom',
+      qml: null,
+    });
+    expect(JSON.parse(lastCall(fetchFn)[1].body as string)).toEqual({
+      name: 'my_schema.my_table.the_geom',
+      qml: null,
+    });
+  });
+
+  it('getLayer returns qml and use_qml', async () => {
+    const layer = { name: 'my_schema.my_table.the_geom', properties: {}, classes: [], qml: null, use_qml: false };
+    const fetchFn = mockFetch(200, layer);
+    const client = createClient(fetchFn);
+
+    const result = await client.provisioning.layers.getLayer('my_schema.my_table.the_geom');
+
+    expect(result.qml).toBeNull();
+    expect(result.use_qml).toBe(false);
+  });
+
   it('patchLayerClass sends PATCH 303', async () => {
     const fetchFn = mockFetch(303, null, { location: '/api/v4/layers/x/classes/a1b2c3d4' });
     const client = createClient(fetchFn);
