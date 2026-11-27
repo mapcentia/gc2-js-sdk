@@ -593,6 +593,31 @@ const multi = ogc.datasetMapUrl('my_database', ['my_schema.roads', 'my_schema.bu
 
 CRS values are URIs: `OGC_CRS84` (lon/lat, default) or `ogcEpsgCrs(code)`; note `ogcEpsgCrs(4326)` is lat/lon order per OGC API Features Part 2. A collection that exists but is not readable answers `401` (anonymous) or `403` (no privilege); unknown collections and features are `404` — all thrown as `CentiaApiError`. An unknown database answers `404 DATABASE_NOT_FOUND` (older servers answer `400`). Geofence rules, versioning and workflow are applied server-side.
 
+## Relation metadata
+
+`client.provisioning.metadata` reads the metadata of relations (tables and views): geometry type, SRID, primary key, tags and the fields with their types. There are two reads, returning the same `MetadataResponse`:
+
+```ts
+const metadata = client.provisioning.metadata
+
+// With a token: the database comes from the token
+const { relations } = await metadata.getMetaData('my_schema.roads')
+
+// Without a token: the database is in the path. Never sends credentials.
+const pub = await metadata.getMetaDataPublic('my_database', 'my_schema.roads')
+// { relations: { 'my_schema.roads': { _schema: 'my_schema', _rel: 'roads', _geom_type: 'MULTILINESTRING',
+//     _srid: 25832, _pkey: 'gid', tags: [...], fields: { gid: { _type: 'integer', ... }, ... } } } }
+
+// A schema, a tag, several at once — or leave the query out for the whole database
+await metadata.getMetaDataPublic('my_database', ['my_schema', 'tag:roads'])
+await metadata.getMetaDataPublic('my_database')
+
+// Leave out column restrictions
+await metadata.getMetaDataPublic('my_database', 'my_schema.roads', { noRestriction: true })
+```
+
+`relations` is an object keyed by `schema.table`, not an array. `getMetaDataPublic` returns only relations that are readable without credentials: a protected relation is left out instead of failing the request, so asking for one by name gives `{ relations: {} }`. An unknown database throws `CentiaApiError` (`404 DATABASE_NOT_FOUND`; older servers answer `400`).
+
 ## Key/value store
 
 `Keyvalue` wraps the `/api/v4/keyvalue` endpoints for storing arbitrary JSON under globally unique keys. It takes a `CentiaHttpClient` and requires a Bearer token:

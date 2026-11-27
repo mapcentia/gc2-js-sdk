@@ -88,6 +88,63 @@ describe('MetadataWrite', () => {
     expect(res).toEqual({ relations: {} });
   });
 
+  it('getMetaDataPublic sends GET to /meta/database/{database}/{query} without credentials', async () => {
+    const body = {
+      relations: {
+        'dagi.kommune': { sort_id: 120, _schema: 'dagi', _rel: 'kommune', _srid: 25832, fields: {} },
+      },
+    };
+    const fetchFn = mockFetch(200, body);
+    const client = createClient(fetchFn);
+
+    const res = await client.provisioning.metadata.getMetaDataPublic('mydb', 'dagi.kommune');
+
+    const [url, init] = lastCall(fetchFn);
+    expect(url).toBe('https://api.example.com/api/v4/meta/database/mydb/dagi.kommune');
+    expect(init.method).toBe('GET');
+    const headers = init.headers as Record<string, string>;
+    expect(headers['Authorization']).toBeUndefined();
+    expect(headers['Content-Type']).toBeUndefined();
+    expect(res).toEqual(body);
+  });
+
+  it('getMetaDataPublic without a query asks for the whole database', async () => {
+    const fetchFn = mockFetch(200, { relations: {} });
+    const client = createClient(fetchFn);
+
+    await client.provisioning.metadata.getMetaDataPublic('my db');
+    expect(lastCall(fetchFn)[0]).toBe('https://api.example.com/api/v4/meta/database/my%20db');
+
+    await client.provisioning.metadata.getMetaDataPublic('mydb', []);
+    expect(lastCall(fetchFn)[0]).toBe('https://api.example.com/api/v4/meta/database/mydb');
+  });
+
+  it('getMetaDataPublic joins several queries, keeps tag: and sends noRestriction', async () => {
+    const fetchFn = mockFetch(200, { relations: {} });
+    const client = createClient(fetchFn);
+
+    await client.provisioning.metadata.getMetaDataPublic('mydb', ['dagi', 'tag:test-tag'], { noRestriction: true });
+    expect(lastCall(fetchFn)[0]).toBe('https://api.example.com/api/v4/meta/database/mydb/dagi,tag:test-tag?noRestriction=true');
+
+    await client.provisioning.metadata.getMetaDataPublic('mydb', 'dagi.a, dagi.b');
+    expect(lastCall(fetchFn)[0]).toBe('https://api.example.com/api/v4/meta/database/mydb/dagi.a,dagi.b');
+  });
+
+  it('getMetaDataPublic normalises an empty relations array to an object', async () => {
+    const fetchFn = mockFetch(200, { relations: [] });
+    const client = createClient(fetchFn);
+
+    expect(await client.provisioning.metadata.getMetaDataPublic('mydb', 'secret.layer')).toEqual({ relations: {} });
+  });
+
+  it('getMetaDataPublic throws CentiaApiError for an unknown database', async () => {
+    const fetchFn = mockFetch(404, { success: false, message: 'Database not found', code: 404, errorCode: 'DATABASE_NOT_FOUND' });
+    const client = createClient(fetchFn);
+
+    await expect(client.provisioning.metadata.getMetaDataPublic('nope'))
+      .rejects.toMatchObject({ status: 404, code: 'DATABASE_NOT_FOUND' });
+  });
+
   it('getMetaConfig sends GET to /meta-config and returns fieldsets', async () => {
     const config = [
       {
